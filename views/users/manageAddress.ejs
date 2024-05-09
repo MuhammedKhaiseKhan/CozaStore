@@ -1,0 +1,447 @@
+
+<%- include('../layouts/userLayout/headerProDetail.ejs')%>
+
+<link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet">
+
+<style>
+  
+    .radio-group {
+        display: flex;
+        justify-content: center;
+    }
+
+   
+    .radio-group .form-check-input {
+        margin-right: 5px; 
+    }
+
+   
+    .submit-button-container {
+        display: flex;
+        justify-content: center;
+    }
+    #isWork{
+        margin-left: 5px;
+    }
+    #isHome{
+        margin-left: 5px;
+    }
+
+    .address-block {
+        margin-bottom: 20px; 
+        padding: 20px; 
+        border: 1px solid #ccc; 
+    }
+</style>
+
+<div class="container">
+    <div class="row" style="margin-top: 100px;">
+        <div class="col-xl-3 col-lg-4 col-md-5">
+            <div class="sidebar-categories">
+                <div class="head"><%= user.fname %></div>
+            </div>
+            <div class="sidebar-categories" style="margin-top: 15px;">
+                <ul class="main-categories">
+                    <li class="main-nav-list"><a data-toggle="collapse" href="#fruitsVegetable" aria-expanded="false" aria-controls="fruitsVegetable">
+                        <span class="fa-regular fa-user"></span>&nbsp;&nbsp;&nbsp;ACCOUNT SETTINGS</a>
+                        <ul class="collapse" id="fruitsVegetable" data-toggle="collapse" aria-expanded="false" aria-controls="fruitsVegetable">
+                            <li class="main-nav-list child active"><a href="/profileDetails?id=<%= user._id %>">Personal Information</a></li>
+                            <li class="main-nav-list child"><a href="/manageAddress?id=<%= user._id %>" >Manage Addresses</a></li>                                
+                        </ul>
+                    </li>
+                    <li class="main-nav-list">
+                        <a  href="/orders?id=<%= user._id %>" aria-expanded="false" aria-controls="fruitsVegetable">
+                            <span class="fa-solid fa-bag-shopping"></span>&nbsp;&nbsp;&nbsp;MY ORDERS</a>
+                    </li>
+                    <li class="main-nav-list">
+                        <a  href="/wishlist?id=<%= user._id %>" aria-expanded="false" aria-controls="fruitsVegetable">
+                            <span class="fa-regular fa-heart"></span>&nbsp;&nbsp;&nbsp;WISHLIST</a>
+                    </li>
+                    <li class="main-nav-list">
+                        <a  href="/waller?id=<%= user._id %>" aria-expanded="false" aria-controls="fruitsVegetable">
+                            <span class="fa-solid fa-wallet"></span>&nbsp;&nbsp;&nbsp;WALLET</a>
+                    </li>
+                    <li class="main-nav-list">
+                        <a  href="/logout" aria-expanded="false" aria-controls="fruitsVegetable">
+                            <span class="fa-solid fa-arrow-up-right-from-square fa-flip-horizontal"></span>&nbsp;&nbsp;&nbsp;Logout</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="col-xl-9 col-lg-8 col-md-7">
+            <div class="row" style="background-color: #ffffff; ">
+                <div class="form-group col-lg-12 pt-3 d-flex justify-content-between align-items-center">
+                    <h3 class="mb-4 text-secondary">Manage Addresses</h3>
+                    <button type="button" class="btn btn-red " onclick="toggleAddAddress()">Add New Address</button>
+                </div>
+               
+                <div id="addressContainer" class="card w-100">
+                    <div class="card-body">
+                        <% if (addresses && addresses.length > 0) { %>
+                            <% let i = 0 %>
+                            <% addresses.forEach(singleAddress => { %>
+                                <% singleAddress.address.forEach(address => { %>
+                                    <div class="address-block">
+                                        <div class="row">
+                                            <div class="col-sm-9"> <!-- Adjust column size as needed -->
+                                                <div class="col-sm-12"> 
+                                                    <span class="detail"><%= address.Name %></span>
+                                                </div>
+                                                <div class="col-sm-12"> 
+                                                    <span class="detail"><%= address.Mobile %></span>
+                                                </div> 
+                                                <div class="col-sm-12">  
+                                                    <span class="detail"><%= `${address.address}, ${address.city}, ${address.state}` %></span>
+                                                </div>
+                                            </div>
+                                            <div class="col-sm-3 text-right"> <!-- Adjust column size as needed -->
+                                                <!-- Edit and Delete icons -->
+                                                <span class="detail" style="font-size: 24px;"> <!-- Adjust the font size as needed -->
+                                                    <!-- Edit icon -->
+                                                    <a href="javascript:void(0);" onclick="toggleEditAddressForm('editAddressForm<%= address._id %>')">
+                                                        <i class="fas fa-edit"></i>
+                                                    </a>
+                                                    <!-- Delete icon -->
+                                                    <a href="javascript:void(0);" onclick="confirmDelete('<%= address._id %>')">
+                                                        <i class="fa fa-trash" style="color:#e81212;"></i>
+                                                    </a>
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                      <!-- edit form -->
+
+                                <div id="editAddressForm<%= address._id %>"  style="display: none;">
+                                    
+                                        <form action="" id="updateForm<%= i %>" method="post">
+                                            <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="updatedName">Name</label>
+                                                    <input type="text" id="updatedName" class="form-control" name="Name" value="<%= address.Name %>" >
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="updatedemail">Email</label>
+                                                    <input type="email" id="updatedemail" class="form-control" name="email" value="<%= address.email %>" >
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="updatedMobile">Mobile</label>
+                                                    <input type="number" class="form-control" id="updatedMobile" name="Mobile" value="<%= address.Mobile %>" >
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="updatedpin">PIN</label>
+                                                    <input type="number" class="form-control" id="updatedpin" name="PIN" value="<%= address.PIN %>" >
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="updatedLocality">Locality</label>
+                                                    <input type="text" class="form-control" id="updatedLocality" name="Locality" value="<%= address.Locality %> " >
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="updatedaddress">Address</label>
+                                                    <input class="form-control" id="updatedaddress" rows="3" name="address" value="<%= address.address %> "  required></input>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="updatedcity">City</label>
+                                                    <input type="text" class="form-control" id="updatedcity" name="city" value="<%= address.city %>" >
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="updatedstate">State</label>
+                                                    <input type="text" class="form-control" id="updatedstate" name="state" value="<%= address.state %>" >
+                                                </div>
+                                            </div>
+                                            <div class="col-md-12">
+                                                <div class="radio-group">
+                                                    <div class="form-group form-check">
+                                                        <input type="radio" class="form-check-input" id="isHome" name="addressType" value="1" <%= address.is_Home ? 'checked' : '' %> >
+                                                        <label class="form-check-label" for="isHome">Home</label>
+                                                    </div>
+                                                    <div class="form-group form-check">
+                                                        <input type="radio" class="form-check-input" id="isWork" name="addressType" value="1" <%= address.is_Work ? 'checked' : '' %>>
+                                                        <label  class="form-check-label" for="isWork">Work </label>
+                                                    </div>
+                                                </div>
+                                                <div class="submit-button-container">
+                                                    <div class="form-group">
+                                                        
+                                                        <button type="button" type="submit" class="btn btn-primary" onclick="updateAddress(<%= i %>)">Submit</button>
+    
+                                                        <!-- <button type="button" class="btn btn-primary" onclick="toggleEditAddressForm()">Back to Address</button> -->
+                                                    </div>
+                                                </div>
+                                        </form>
+                                            
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- edit form end  -->
+                                <% i++ %>
+
+                                <% }); %>
+                            <% }); %>
+                        <% } %>
+                    </div>
+                </div> 
+            </div>
+                  
+
+                <!-- Form -->
+                <div class="container">
+                    <div id="addAddressForm" style="display: none;">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="Name">Name</label>
+                                    <input type="text" class="form-control" id="Name" name="Name" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="email">Email</label>
+                                    <input type="email" class="form-control" id="email" name="email" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="Mobile">Mobile</label>
+                                    <input type="number" class="form-control" id="Mobile" name="Mobile" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="pin">PIN</label>
+                                    <input type="number" class="form-control" id="pin" name="pin"  required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="Locality">Locality</label>
+                                    <input type="text" class="form-control" id="Locality" name="Locality" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="address">Address</label>
+                                    <textarea class="form-control" id="address" name="address" rows="3" required></textarea>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="city">City</label>
+                                    <input type="text" class="form-control" id="city" name="city" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="state">State</label>
+                                    <input type="text" class="form-control" id="state" name="state" required>
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="radio-group">
+                                    <div class="form-group form-check">
+                                        <input type="radio" class="form-check-input" id="isHome" name="addressType" value="home" checked>
+                                        <label class="form-check-label" for="isHome">Home</label>
+                                    </div>
+                                    <div class="form-group form-check">
+                                        <input type="radio" class="form-check-input" id="isWork" name="addressType" value="work">
+                                        <label  class="form-check-label" for="isWork">Work </label>
+                                    </div>
+                                </div>
+                                <div class="submit-button-container">
+                                    <div class="form-group">
+                                        <button type="submit" class="btn btn-primary" id="submitButton">Submit</button>
+                                    </div>
+                                </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+             <!-- Form end -->
+        </div>
+    </div>
+</div>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+
+
+<script>
+    function toggleAddAddress() {
+        var addressContainer = document.getElementById('addressContainer');
+        var addressForm = document.getElementById('addAddressForm');
+
+        if (addressForm.style.display === 'none') {
+            addressContainer.style.display = 'none';
+            addressForm.style.display = 'block';
+        } else {
+            addressContainer.style.display = 'block';
+            addressForm.style.display = 'none';
+        }
+    }
+
+
+
+    document.getElementById('submitButton').addEventListener('click', async function() {
+        const formData = {
+            Name: document.getElementById('Name').value,
+            email: document.getElementById('email').value,
+            Mobile: document.getElementById('Mobile').value,
+            pin: document.getElementById('pin').value,
+            Locality: document.getElementById('Locality').value,
+            address: document.getElementById('address').value,
+            city: document.getElementById('city').value,
+            state: document.getElementById('state').value,
+            is_Home: document.getElementById('isHome').checked,
+            is_Work: document.getElementById('isWork').checked
+        };
+
+        
+
+        try {
+            const response = await fetch('/newAddress', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            });
+
+            if (response.ok) {
+                console.log('Address added successfully');
+                window.location.href = '/manageAddress';
+            } else {
+                console.error('Failed to add address');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    });
+  
+
+    function toggleEditAddressForm(form) {
+        var addressContainer = document.getElementById('addressContainer');
+        var editForm = document.getElementById(form);
+
+        if (editForm.style.display === 'none') {
+            editForm.style.display = 'block';
+        } else {
+            editForm.style.display = 'none';
+        }
+    }
+   
+    async function updateAddress(index) {
+    const form = document.getElementById(`updateForm${index}`)
+    const formData =new FormData(form)
+
+    const jsonObject = {};
+    formData.forEach((value,key)=>{
+        jsonObject[key] = value;
+    })
+
+    jsonObject.is_Home = document.getElementById('isHome').checked;
+    jsonObject.is_Work = document.getElementById('isWork').checked;
+
+
+
+    try {
+        const response = await fetch(`/updateAddress/${index}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            // body: formData
+            body: JSON.stringify(jsonObject)
+        });
+
+        if (response.ok) {
+            // Show success alert
+            Swal.fire({
+                icon: 'success',
+                title: 'Address Updated',
+                text: 'Your address has been updated successfully!',
+                showConfirmButton: false,
+                timer: 1500 // Hide after 1.5 seconds
+            });
+
+            // Redirect to manage address page after 1.5 seconds
+            setTimeout(() => {
+                window.location.href = '/manageAddress';
+            }, 1500);
+        } else {
+            console.error('Failed to update address');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
+
+//delete address
+
+function confirmDelete(addressId) {
+        Swal.fire({
+            title: 'Are you sure?',
+            text: 'You won\'t be able to revert this!',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Yes, delete it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // If confirmed, delete the address
+                deleteAddress(addressId);
+            }
+        });
+    }
+
+    async function deleteAddress(addressId) {
+        try {
+            const response = await fetch(`/deleteAddress/${addressId}`, {
+                method: 'DELETE'
+            });
+
+            if (response.ok) {
+                // Show success alert
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Address Deleted',
+                    text: 'Your address has been deleted successfully!',
+                    showConfirmButton: false,
+                    timer: 1500 // Hide after 1.5 seconds
+                });
+
+                // Reload the page after 1.5 seconds
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1500);
+            } else {
+                console.error('Failed to delete address');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+
+
+</script>
+
+
+
+<%- include('../layouts/userLayout/footerProDetail.ejs')%>

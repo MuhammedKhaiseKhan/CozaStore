@@ -1,0 +1,331 @@
+<%- include('../layouts/userLayout/headerProDetail.ejs')%>
+
+
+
+<body style="background-color: #f5f7ff;">    
+    <!-- End Banner Area -->
+    <div class="container">
+        <div class="row" style="margin-top: 154px;">
+            <div class="col-xl-3 col-lg-4 col-md-5">
+                <div class="sidebar-categories">
+                    <div class="head"><%= user.fname %></div>
+                </div>
+                <div class="sidebar-categories" style="margin-top: 15px;">
+                    <ul class="main-categories">
+                        <li class="main-nav-list"><a data-toggle="collapse" href="#fruitsVegetable" aria-expanded="false" aria-controls="fruitsVegetable">
+                            <span class="fa-regular fa-user"></span>&nbsp;&nbsp;&nbsp;ACCOUNT SETTINGS</a>
+                            <ul class="collapse" id="fruitsVegetable">
+                                <li class="main-nav-list child active"><a href="/profileDetails?id=<%= user._id %>">Personal Information</a></li>
+                                <li class="main-nav-list child"><a href="/manageAddress?id=<%= user._id %>" >Manage Addresses</a></li>                                
+                            </ul>
+                        </li>
+                        <li class="main-nav-list">
+                            <a  href="/orders?id=<%= user._id %>" aria-expanded="false" aria-controls="fruitsVegetable">
+                                <span class="fa-solid fa-bag-shopping"></span>&nbsp;&nbsp;&nbsp;MY ORDERS</a>
+                        </li>
+                        <li class="main-nav-list">
+                            <a  href="/wishlist?id=<%= user._id %>" aria-expanded="false" aria-controls="fruitsVegetable">
+                                <span class="fa-regular fa-heart"></span>&nbsp;&nbsp;&nbsp;WISHLIST</a>
+                        </li>
+                        <li class="main-nav-list">
+                            <a  href="/waller?id=<%= user._id %>" aria-expanded="false" aria-controls="fruitsVegetable">
+                                <span class="fa-solid fa-wallet"></span>&nbsp;&nbsp;&nbsp;WALLET</a>
+                        </li>
+                        <li class="main-nav-list">
+                            <a  href="/logout" aria-expanded="false" aria-controls="fruitsVegetable">
+                                <span class="fa-solid fa-arrow-up-right-from-square fa-flip-horizontal"></span>&nbsp;&nbsp;&nbsp;Logout</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="col-xl-9 col-lg-8 col-md-7" id="profileDetails">
+                <div class="row" style="background-color: #ffffff; margin-bottom: 10%;">
+                    <div class="form-group col-lg-12 pt-3 d-flex justify-content-between align-items-center">
+                        <h3 class="mb-4 text-secondary">Personal Information</h3>
+                        <button type="button" class="btn btn-red " onclick="toggleProfileEdit()">Edit Profile</button>
+                    </div>
+                    <div class="form-group col-lg-6 ">
+                        <label for="fName">First Name</label>
+                        <input type="text" class="form-control" id="fName"  name="fName" placeholder="<%= user.fname %>" readonly>
+                    </div>
+                    <div class="form-group col-lg-6">
+                        <label for="lName">Last Name</label>
+                        <input type="text" class="form-control" id="lName"  name="lName" placeholder="<%= user.sname %>" readonly>
+                    </div>
+                    <div class="form-group col-lg-12">
+                        <label for="username">Username</label>
+                        <input type="text" class="form-control" id="username" name="username" placeholder="<%= user.username %>" readonly>
+                    </div>
+                    <div class="form-group col-lg-12">
+                        <label for="email">Email</label>
+                        <input type="text" class="form-control" id="email" name="email" placeholder="<%= user.email %>" readonly>
+                    </div>
+                    <div class="form-group col-lg-12 pb-5">
+                        <label for="phone">Phone</label>
+                        <input type="text" class="form-control" id="phone" name="phone" placeholder="<%= user.number %>" readonly>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-9 col-lg-8 col-md-7" id="updateProfile" style="display: none;">
+                <div class="row" style="background-color: #ffffff; margin-bottom: 10%;">
+                    <div class="col-lg-12" id="editProfile">
+                        <div class="form-group col-lg-12 pt-3 d-flex justify-content-between align-items-center">
+                        <h3 class="mb-2 text-secondary pt-3">Update Profile</h3>
+                        <button type="button" class="btn btn-red " onclick="toggleProfileEdit()">Cancel</button>
+                        </div>
+                        <form id="myForm" onsubmit="updateUserProfile('<%= user._id %>', event)">
+                            <div class="row mt-3">
+                                <div class="col-lg-6 mt-3">
+                                    <label for="fName">First Name</label>
+                                    <input type="text" class="form-control" id="fName" name="fname" value="<%= user.fname %>" required>
+                                </div> 
+                                <div class="col-lg-6 mt-3">
+                                    <label for="lName">Last Name</label>
+                                    <input type="text" class="form-control" id="lName" name="sname" value="<%= user.sname %>">
+                                </div>
+                            </div>
+                            <div class="row mt-3">
+                                <div class="col">
+                                    <label for="username">Username</label>
+                                    <input type="text" class="form-control" id="username" name="username" value="<%= user.username %>">
+                                </div>
+                            </div>
+                            <div class="row mt-3">
+                                <div class="col">
+                                    <label for="email">Email</label>
+                                    <input type="text" class="form-control" id="email" name="email" value="<%= user.email %>" readonly >
+                                </div>
+                            </div>
+                            <div class="row mt-2">
+                                <div class="col">
+                                    <label for="phone">Phone</label>
+                                    <input type="text" class="form-control" id="phone" name="number" value="<%= user.number %>" required>
+                                    <input type="hidden" name="id" value="<%= user._id %>">
+                                </div>
+                            </div>
+                            <div class="row mt-4">
+                                <div class="col">
+                                    <button type="submit" class="btn btn-blue btn-lg btn-block">Update</button>
+                                </div>
+                                <div class="col">
+                                    <button type="button" class="btn btn-red btn-lg" onclick="clearForm()">Clear</button>
+                                    <button type="button" class="btn btn-red btn-lg" onclick="togglePasswordChange()">Change Password</button>
+                                </div>
+                            </div>
+                        </form>
+                        <p id="message" style="color: red;"></p>
+                        <br>
+                        <% if(typeof message !== "undefined"){ %>
+                            <p style="color: brown;"><%=message%></p> 
+                        <% } %>
+                    </div>
+
+                    <!-- change password -->
+                    <div class="col-lg-12" style="display: none;" id="changePassword">
+                        <div class="form-group col-lg-12 pt-3 d-flex justify-content-between align-items-center">
+                        <h3 class="mb-2 text-secondary pt-3">Change Password</h3>
+                        <button type="button" class="btn btn-red " onclick="toggleProfileEdit()">Cancel</button>
+                        </div>
+                        <form id="myForm" onsubmit="changePassword(event)">
+                            <div class="row mt-3">
+                                <div class="col">
+                                    <label for="currentPassword">Current Password</label>
+                                    <input type="password" class="form-control" id="currentPassword" name="currentPassword" >
+                                </div>
+                            </div>
+                            <div class="row mt-3">
+                                <div class="col">
+                                    <label for="newPassword">New Password</label>
+                                    <input type="password" class="form-control" id="newPassword" name="newPassword" >
+                                </div>
+                            </div>
+                            <div class="row mt-3">
+                                <div class="col">
+                                    <label for="confmPassword">Conform Password</label>
+                                    <input type="password" class="form-control" id="confmPassword" name="confmPassword" >
+                                </div>
+                            </div>
+                            <div class="row mt-3">
+                                <div class="col d-flex justify-content-center align-items-center">
+                                    <p id="message" class="" style="color: red;"></p>
+                                </div>
+                            </div>
+                            <div class="row mt-2">
+                                <div class="col">
+                                    <button type="submit" class="btn btn-blue btn-lg btn-block">Change Password</button>
+                                </div>
+                            </div>
+                        </form>
+                        <br>
+                        <% if(typeof message !== "undefined"){ %>
+                            <p style="color: brown;"><%=message%></p> 
+                        <% } %>
+                    </div>
+                    <!-- change password end-->
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+
+      
+
+        function toggleProfileEdit() {
+            var changePassword = document.getElementById('changePassword')
+            if(changePassword.style.display === 'block'){
+                togglePasswordChange()
+            }
+            var profileDetails = document.getElementById('profileDetails');
+            var updateProfile = document.getElementById('updateProfile');
+            if (profileDetails.style.display === 'none') {
+                profileDetails.style.display = 'block';
+                updateProfile.style.display = 'none';
+            } else {
+                profileDetails.style.display = 'none';
+                updateProfile.style.display = 'block';
+            }
+        }
+
+        function togglePasswordChange(){
+            var updateProfile = document.getElementById('editProfile')
+            var changePassword = document.getElementById('changePassword')
+            if(updateProfile.style.display==='none'){
+                updateProfile.style.display = 'block';
+                changePassword.style.display = 'none';
+            }else{
+                updateProfile.style.display = 'none';
+                changePassword.style.display = 'block';
+            }
+        }
+
+        function updateUserProfile(userId,event) {
+            event.preventDefault();  
+
+            Swal.fire({
+                title: "Do you want to save the changes?",
+                showDenyButton: true,
+                showCancelButton: true,
+                confirmButtonText: "Save",
+                denyButtonText: "Don't save",
+                preConfirm: () => {
+                    const formData = new FormData(event.target);
+                    const formDataJsonString = JSON.stringify(Object.fromEntries(formData))
+                    return fetch('/updateProfile', {
+                        method: 'POST',
+                        headers:{
+                            'Content-Type':'application/json'
+                        },
+                        body: formDataJsonString
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(response.statusText);
+                        }
+                        return response.json();
+                    })
+                    .catch(error => {
+                        Swal.fire("Failed!", "Changes could not be saved: " + error.message, "error");
+                    });
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire("Saved!", "", "success").then(() => {
+                        window.location.reload(); 
+                    });
+                } else if (result.isDenied) {
+                    Swal.fire("Changes are not saved", "", "info");
+                }
+            });
+        }
+
+        function changePassword(event) {
+            event.preventDefault(); 
+            const form = document.getElementById('myForm');
+            const formData = new FormData(event.target);
+
+            const currentPassword = formData.get('currentPassword');
+            const newPassword = formData.get('newPassword');
+            const confirmPassword = formData.get('confmPassword');
+
+            if (newPassword !== confirmPassword) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Passwords do not match',
+                    text: 'Please make sure your new passwords match.',
+                });
+                return;
+            }
+
+            const swalWithBootstrapButtons = Swal.mixin({
+                customClass: {
+                    confirmButton: "btn btn-success",
+                    cancelButton: "btn btn-danger"
+                },
+                buttonsStyling: false
+            });
+
+            swalWithBootstrapButtons.fire({
+                title: "Are you sure?",
+                text: "You won't be able to revert this!",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonText: "Yes, change it!",
+                cancelButtonText: "No, cancel!",
+                reverseButtons: true,
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    fetch('/changePassword', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ currentPassword, newPassword })
+                    }).then(response => {
+                        if (!response.ok) {
+                            throw response;
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        swalWithBootstrapButtons.fire({
+                            title: "Changed!",
+                            text: "Your password has been changed.",
+                            icon: "success"
+                        }).then(() => {
+                            location.reload();
+                        });
+                    })
+                    .catch(error => {
+                        error.json().then(err => {
+                            swalWithBootstrapButtons.fire({
+                                title: "Failed!",
+                                text: err.message || "There was a problem changing your password.",
+                                icon: "error"
+                            });
+                        });
+                    });
+                } else if (result.dismiss === Swal.DismissReason.cancel) {
+                    swalWithBootstrapButtons.fire({
+                        title: "Cancelled",
+                        text: "Your password change was cancelled.",
+                        icon: "error"
+                    });
+                }
+            });
+        }
+
+        function clearForm() {
+        // Get the form element
+        var form = document.getElementById('myForm');
+
+        // Reset all input fields within the form
+        form.reset();
+     }
+
+    </script>
+
+
+<%- include('../layouts/userLayout/footerProDetail.ejs')%>

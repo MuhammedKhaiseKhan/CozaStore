@@ -1,0 +1,102 @@
+<%- include('../layouts/userLayout/header.ejs')%>
+
+<div class="wrapper" style="background-image: url('/reg/images/bg-registration-form-1.jpg');">
+    <div class="inner">
+        <div class="image-holder">
+            <img src="/reg/images/registration-form-1.jpg" alt="">
+        </div>
+        <main class="relative min-h-screen flex flex-col justify-center bg-slate-50 overflow-hidden">
+            <div class="w-full max-w-6xl mx-auto px-4 md:px-6 py-24">
+                <div class="flex justify-center">
+                    <div class="max-w-md mx-auto text-center bg-white px-4 sm:px-8 py-10 rounded-xl shadow">
+                        <header class="mb-8">
+                            <h1 class="text-2xl font-bold mb-1">Email Verification</h1>
+                            <p class="text-[15px] text-slate-500">Enter the 4-digit verification code that was sent to your Email.</p>
+                        </header>
+                        <!-- OTP Form -->
+                        <div class="relative flex min-h-screen flex-col justify-center overflow-hidden bg-gray-50 py-12">
+                            <div class="relative bg-white px-6 pt-10 pb-9 shadow-xl mx-auto w-full max-w-lg rounded-2xl">
+                                <div class="mx-auto flex w-full max-w-md flex-col space-y-16">
+                                    <div class="flex flex-col items-center justify-center text-center space-y-2"></div>
+                                    <div>
+                                        <form action="/otpVerify" method="post" style="margin-left: 8.5rem;">
+                                            <div class="flex flex-col space-y-16">
+                                                <div class="flex flex-row items-center justify-between mx-auto w-full max-w-xs">
+                                                    <div class="inputBX">
+                                                        <div class="w-16 h-16 ">
+                                                            <input maxlength="1" class="w-full h-full flex flex-col items-center justify-center text-center px-3 outline-none rounded-xl border border-gray-200 text-lg bg-white focus:bg-gray-50 focus:ring-1 ring-blue-700 z-10" type="text" name="otp1" id="" style="padding: 10px;">
+                                                        </div>
+                                                        <div class="w-16 h-16 ">
+                                                            <input maxlength="1" class="w-full h-full flex flex-col items-center justify-center text-center px-3 outline-none rounded-xl border border-gray-200 text-lg bg-white focus:bg-gray-50 focus:ring-1 ring-blue-700 z-10" type="text" name="otp2" id="" style="padding: 10px;">
+                                                        </div>
+                                                        <div class="w-16 h-16 ">
+                                                            <input maxlength="1" class="w-full h-full flex flex-col items-center justify-center text-center px-3 outline-none rounded-xl border border-gray-200 text-lg bg-white focus:bg-gray-50 focus:ring-1 ring-blue-700 z-10" type="text" name="otp3" id="" style="padding: 10px;">
+                                                        </div>
+                                                        <div class="w-16 h-16 ">
+                                                            <input class="w-full h-full flex flex-col items-center justify-center text-center px-3 outline-none rounded-xl border border-gray-200 text-lg bg-white focus:bg-gray-50 focus:ring-1 ring-blue-700 z-10" type="text" name="otp4" id="" style="padding: 10px;">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <!-- Verify Button -->
+                                            <button type="submit" class="flex flex-row items-center justify-center text-center w-full border rounded-xl outline-none py-3 bg-blue-700 border-none text-white text-sm shadow-sm"> <!-- Reduced button padding -->
+                                                Verify Account
+                                            </button>
+                                        </form>
+                                        <% if (typeof message !== 'undefined') { %>
+                                            <div class="alert alert-danger" role="alert">
+                                                <%= message %>
+                                            </div>
+                                            <% } %>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Timer for Resend -->
+                        <div id="resendTimer" class="text-sm text-slate-500 mt-4">Resend in <span id="countdown">10</span> seconds</div>
+                        <div id="resendLink" class="text-sm text-slate-500 mt-4" style="display: none;">Didn't receive code? <a  id="resendBtn" class="font-medium text-indigo-500 hover:text-indigo-600" href="/resentOTP">Resend</a></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<%- include('../layouts/userLayout/footer.ejs')%>
+
+<script>
+
+    const countdownEl = document.getElementById('countdown');
+    const resendTimerEl = document.getElementById('resendTimer');
+    const resendLinkEl = document.getElementById('resendLink');
+    const resendBtnEl = document.getElementById('resendBtn');
+
+    let countdown = 30;
+
+// Function to update countdown and handle timer completion
+function updateCountdown() {
+    countdown--;
+    countdownEl.textContent = countdown;
+
+    if (countdown === 0) {
+        clearInterval(timer);
+        resendTimerEl.style.display = "none";
+        resendLinkEl.style.display = "inline";
+    }
+}
+
+// Initial timer setup
+let timer = setInterval(updateCountdown, 1000);
+
+// Event listener for Resend button
+resendBtnEl.addEventListener('click', () => {
+    // Reset countdown and start the timer again
+    countdown = 20;
+    countdownEl.textContent = countdown;
+    resendTimerEl.style.display = "inline";
+    resendLinkEl.style.display = "none";
+    timer = setInterval(updateCountdown, 1000);
+});
+
+
+</script>

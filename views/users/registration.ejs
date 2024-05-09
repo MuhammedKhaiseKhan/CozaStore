@@ -1,0 +1,139 @@
+<%- include('../layouts/userLayout/header.ejs')%>
+
+<div class="wrapper" style="background-image: url('/reg/images/bg-registration-form-1.jpg');">
+    <div class="inner">
+        <div class="image-holder">
+            <img src="/reg/images/registration-form-1.jpg" alt="">
+        </div>
+        <form id="Regform" action="/register" method="post">
+            <h3>Registration Form</h3>
+            <div class="form-group">
+                <input type="text" placeholder="First Name" name="fname" class="form-control" required>
+                <input type="text" placeholder="Last Name" name="sname" class="form-control" required>
+            </div>
+            <div class="form-wrapper">
+                <input type="text" placeholder="Username" name="username" class="form-control" required>
+                <i class="zmdi zmdi-account"></i>
+            </div>
+            <div class="form-wrapper">
+                <input type="text" placeholder="Email Address" name="email" class="form-control" required>
+                <i class="zmdi zmdi-email"></i>
+            </div>
+            <div class="form-wrapper">
+                <input type="text" placeholder="Mobile number" name="number" class="form-control" required>
+                <i class="zmdi zmdi-phone" style="font-size: 17px"></i>
+            </div>
+            <div class="form-wrapper">
+                <input type="password" placeholder="Password" name="password" class="form-control" required>
+                <i class="zmdi zmdi-lock"></i>
+            </div>
+            <div class="form-wrapper">
+                <input type="password" placeholder="Confirm Password" name="confirm-password" class="form-control" required>
+                <i class="zmdi zmdi-lock"></i>
+            </div>
+            <div id="error-messages" style="color: red;">
+
+              <%
+              if(typeof message !== 'undefined'){
+                   %>
+              <p style="color: red;"><%= message %></p>
+                  <%  
+                  }
+              %>
+
+            </div>
+            <button type="submit">Register
+                <i class="zmdi zmdi-arrow-right"></i>
+            </button>
+            <div class="mt-2" >
+              <p style="margin-left: 17px;" >Already have an account? click on<a href="login" style="margin-left: 10px;">login</a></p>
+              </div>
+        </form>
+    </div>
+</div>
+
+
+
+
+<script>
+    function validateForm() {
+
+const firstName = document.getElementsByName("fname")[0];
+const lastName = document.getElementsByName("sname")[0];
+const username = document.getElementsByName("username")[0];
+const email = document.getElementsByName("email")[0];
+const mobileNumber = document.getElementsByName("number")[0];
+const password = document.getElementsByName("password")[0];
+const confirmPassword = document.getElementsByName("confirm-password")[0];
+
+
+const errorMessages = document.getElementById("error-messages");
+if (errorMessages) {
+  errorMessages.innerHTML = "";
+}
+
+
+let isValid = true;
+const errorMessageList = [];
+
+// Validate Name (both first and last)
+const nameValidationRegex = /^[a-zA-Z]+$/;  // Only letters allowed
+if (!firstName.value.trim() || !lastName.value.trim()) {
+  errorMessageList.push("First and Last Name cannot be empty.");
+} else if (!firstName.value.match(nameValidationRegex) || !lastName.value.match(nameValidationRegex)) {
+  errorMessageList.push("Name should only contain letters and no spaces.");
+}
+
+// Validate Mobile Number
+const mobileValidationRegex = /^\d{10}$/;  // Exactly 10 digits
+if (!mobileNumber.value.match(mobileValidationRegex) || mobileNumber.value === "0000000000") {
+  errorMessageList.push("Mobile number must be 10 digits and cannot be all zeros.");
+}
+
+// Validate Email 
+const emailValidationRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+if (!email.value.trim() || !email.value.match(emailValidationRegex)) {
+  errorMessageList.push("Please enter a valid email address.");
+}
+
+// Validate password 
+const passwordMinLength = 8;  // Minimum password length
+if (password.value.length < passwordMinLength) {
+  errorMessageList.push(`Password must be at least ${passwordMinLength} characters long.`);
+}
+
+// Validate confirm password (match with password)
+if (confirmPassword.value !== password.value) {
+  errorMessageList.push("Passwords do not match.");
+}
+
+
+if (errorMessageList.length > 0) {
+  isValid = false;
+  let errorMessage = "<b>Please fix the following errors:</b><br>";
+  errorMessage += errorMessageList.join("<br>");
+  if (errorMessages) {
+    errorMessages.innerHTML = errorMessage;
+  } else {
+    alert(errorMessage);
+  }
+}
+
+return isValid;
+}
+
+
+document.addEventListener('DOMContentLoaded', function () {
+const form = document.getElementById("Regform");
+if (form) {
+    form.addEventListener("submit", function(event) {
+        if (!validateForm()) {
+            event.preventDefault();  
+        }
+    });
+}
+});
+</script>
+
+
+<%- include('../layouts/userLayout/footer.ejs')%>

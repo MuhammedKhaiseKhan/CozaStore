@@ -1,0 +1,40 @@
+<%- include('../layouts/userLayout/header.ejs')%>
+
+
+<div class="wrapper" style="background-image: url('/reg/images/bg-registration-form-1.jpg');">
+    <div class="inner">
+        <div class="image-holder">
+            <img src="/reg/images/registration-form-1.jpg" alt="">
+        </div>
+        <form action="/login-verify" method="post">
+            <h3>Login</h3>
+            
+            <div class="form-wrapper">
+                <input type="text" placeholder="Email Address" name="email" class="form-control" required>
+                <i class="zmdi zmdi-email"></i>
+            </div>
+           
+            <div class="form-wrapper">
+                <input type="password" placeholder="Password" name="password" class="form-control" required>
+                <i class="zmdi zmdi-lock"></i>
+            </div>
+            <%
+            if(typeof message !== 'undefined'){
+                 %>
+            <p style="color: red;"><%= message %></p>
+                <%  
+                }
+            %>
+
+            <button type="submit" >Login
+                <i class="zmdi zmdi-arrow-right"></i>
+            </button>
+            <div class="mt-2" >
+              <p style="margin-left: 45px;" >Don't have an account?<a href="registration" style="margin-left: 10px;">Signup</a></p>
+              </div>
+        </form>
+    </div>
+</div>
+
+
+<%- include('../layouts/userLayout/footer.ejs')%>

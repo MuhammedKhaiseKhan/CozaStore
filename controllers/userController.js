@@ -1,0 +1,515 @@
+
+const User = require('../model/userSchema');
+const bcrypt = require("bcrypt");
+const sendEmail = require('../util/Nodemailer');
+const generateOTP = require('../util/genereteOTP');
+const reSendEmail = require('../util/reSendEmail');
+const Otp = require("../model/otpSchema");
+const Category = require('../model/admin/categorySchema');
+const Product = require('../model/admin/productSchema');
+const Address = require('../model/addressSchema');
+const Cart = require('../model/cartSchema');
+
+
+
+
+const securePassword = async (password)=>{
+    try {
+        const passwordHash = bcrypt.hash(password,10);
+        return passwordHash;
+    } catch (error) {
+        console.log(error.message);
+    }
+}
+
+const insertUser = async(req,res)=>{
+    try {
+        const sPassword = await securePassword(req.body.password);
+        const {fname,sname,username,email,number,spassword}=req.body
+
+            const regexPattern = new RegExp(`^${email}$`,'i')
+            const alreadyExist = await User.find({email:regexPattern})
+            if(alreadyExist.length > 0){
+                return res.render('registration',{message:"this Email is already added"})
+            }
+
+        const userData = new User({
+            fname:fname,
+            sname:sname,
+            username:username,
+            email:email,
+            number:number,
+            password:sPassword
+        })
+
+        // const user =await userData.save();
+        req.session.userData = userData
+        
+        await sendEmail(req,res)
+        res.render('otp');
+
+        
+    } catch (error) {
+         console.log(error.message);
+    }
+}
+
+
+const contactPage = async(req,res)=>{
+    try{
+
+        res.render('contact');
+
+    } catch (error) {
+        console.log(error.message);
+    }
+}
+
+const blogPage = async(req,res)=>{
+    try {
+        
+        res.render('blog');
+
+    } catch (error) {
+        console.log(error.message);
+    }
+}
+
+const blogDetailPage = async(req,res)=>{
+    try {
+        
+        res.render('blog-detail');
+
+    } catch (error) {
+        console.log(error.message);
+    }
+}
+
+const aboutPage = async(req,res)=>{
+    try {
+        
+        res.render('about');
+
+    } catch (error) {
+        console.log(error.message);
+    }
+}
+
+const homePage = async (req, res) => {
+    try {
+        const categories = await Category.find({ is_delete: false });
+        const products = await Product.find({ isDeleted: false });
+
+        res.render('index', { categories: categories, products: products });
+
+    } catch (error) {
+        console.log(error.message);
+        
+        res.status(500).send('Internal Server Error');
+    }
+}
+
+
+const productPage = async(req,res)=>{
+    try {
+
+        res.render('product')
+        
+    } catch (error) {
+        console.log(error.message);
+    }
+}
+const productDetail = async (req, res) => {
+    try {
+        const productId = req.params.id; 
+        const product = await Product.findById(productId);
+        const category = await Category.find();
+
+        if (!product) {
+            // Handle case where product is not found
+            return res.status(404).render('error', { message: 'Product not found' });
+        }
+
+        res.render('product-detail', { product: product, category: category });
+    } catch (error) {
+        console.log(error.message);
+        // res.status(500).render('error', { message: 'Internal Server Error' });
+    }
+};
+
+
+const cartPage = async(req,res)=>{
+    try {
+       
+        const userId = req.session.user_id;
+        const userCart = await Cart.findOne({ userId }).populate('cartItems.productId');
+        const product = userCart.cartItems.map(item => item.productId);
+        res.render('shoping-cart', { userCart , product})
+    } catch (error) {
+        console.error(error.message);
+    }
+}
+
+const registrationPage = async(req,res)=>{
+    try {
+
+        res.render('registration');
+        
+    } catch (error) {
+        console.log(error.message);
+    }
+}
+
+const loginPage = async(req,res)=>{
+    try {
+        res.render('login');
+    } catch (error) {
+        console.log(error.message);
+    }
+}
+
+const otpPage = async(req,res)=>{
+    try {
+        res.render('otp')
+    } catch (error) {
+        console.log(error.message);
+    }
+}
+
+const otpVerification = async(req,res)=>{
+    try {
+         
+        const { otp1, otp2, otp3, otp4 } = req.body;
+        const userEnteredOTP = [otp1, otp2, otp3, otp4].join('') 
+        const {email} = req.session.userData
+       console.log(email)
+        const storedOtp = await Otp.findOne({userEmail:email})
+
+        // console.log(storedOtp.code);
+        // const generatedOTP = req.session.otpData;
+
+        if(userEnteredOTP == storedOtp.code){
+
+            const userData = req.session.userData
+           userData.is_verified = true
+            
+            await User.create(userData)
+           
+            res.redirect('login');
+
+        }else{
+            // res.send("<script>alert('Invalid OTP'); window.history.back();</script>");
+            res.render('otp',{message:"Invalid OTP"});
+
+            console.log("Invalid OTP");
+        }
+        
+    } catch (error) {
+        console.log(error.message);
+    }
+}
+
+const resentOTP = async(req,res)=>{
+    try {
+        await reSendEmail(req,res)
+
+    } catch (error) {
+        console.log(error.message);
+    }
+}
+
+
+const verifyLogin = async(req,res)=>{
+    try {
+        const email = req.body.email;
+        const password = req.body.password;
+
+        const userData = await User.findOne({email:email});
+        
+
+        if(userData){
+         
+           const passwordMatch = await bcrypt.compare(password,userData.password);
+           
+           if(passwordMatch){
+            if(userData.is_verified){
+                req.session.user_id = userData._id;
+                res.redirect('/index.html');
+            }else{
+                res.render('login',{message:"your Account is blocked by Admin"});
+            }      
+           }
+           else{
+            res.render('login',{message:"Email or password is incorrect"});
+           }
+
+        }
+        else{
+            res.render('login',{message:"Email or password is incorrect"});
+        }
+
+    } catch (error) {
+        console.log(error.message);
+    }
+}
+
+const userLogout = async(req,res)=>{
+    try {
+        
+        req.session.destroy();
+        res.redirect('login');
+
+    } catch (error) {
+        console.log(error.message);
+    }
+}
+
+const userProfile = async (req, res) => {
+    try {
+
+        const userId = req.session.user_id;
+
+        // Assuming you're using Mongoose
+        const user = await User.findById(userId);
+        if (!user) {
+            // User not found, handle this situation
+            return res.status(404).send('User not found');
+        }
+
+        res.render('userProfile', { user: user });
+    } catch (error) {
+        console.log(error.message);
+        res.status(500).send('Internal Server Error');
+    }
+}
+
+const updateUserProfile = async (req, res) => {
+    try {
+        const userId = req.session.user_id;
+        const { fname, sname, username, number } = req.body;
+
+        // Find the user by ID
+        const user = await User.findById(userId);
+
+        // Update user fields if provided in the request
+        if (fname) user.fname = fname;
+        if (sname) user.sname = sname;
+        if (username) user.username = username;
+        if (number) user.number = number;
+
+        // Save the updated user object
+        await user.save();
+
+        // Send a success response
+        res.status(200).json({ message: "User profile updated successfully." });
+    } catch (error) {
+        // Handle errors
+        console.error(error);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+};
+
+
+
+
+const changePassword = async (req, res) => {
+    try {
+        const userId = req.session.user_id;
+        const { currentPassword, newPassword } = req.body;
+        const user = await User.findById(userId);
+        const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
+
+        if (!isPasswordValid) {
+            return res.status(400).json({ error: "Current password is incorrect." });
+        }
+
+        const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+
+        user.password = hashedNewPassword;
+
+        await user.save();
+
+        res.status(200).json({ message: "Password changed successfully." });
+    } catch (error) {
+
+        console.error(error);
+        res.status(500).json({ error: "Internal Server Error" });
+
+    }
+};
+
+
+const manageAddress = async(req,res)=>{
+    try {
+        const userId = req.session.user_id;
+        const user = await User.findById(userId);
+        let addresses = await Address.find({ user_id: userId });
+        const index = req.params.index;
+
+        addresses = addresses.filter(address => address !== undefined);
+
+        res.render('manageAddress', { user: user, addresses: addresses ,index:index});
+    } catch (error) {
+        console.log(error.message);
+    }
+}
+
+
+const newAddress = async (req, res) => {
+    try {
+        const id = req.session.user_id;
+
+        const { Name, email, Mobile, pin, Locality, address, city, state, is_Home, is_Work } = req.body;
+
+        const isHome = is_Home === 'true';
+        const isWork = is_Work === 'true';
+
+        const  newAddress = {
+            Name: Name,
+            email: email,
+            Mobile: Mobile,
+            PIN: pin,
+            Locality: Locality,
+            address: address,
+            city: city,
+            state: state,
+            is_Home: isHome, 
+            is_Work: isWork,
+        };
+
+        const alreadyExist = await Address.findOne({user_id:id});
+        if(alreadyExist){
+            const addAddress = await Address.findOneAndUpdate({user_id:id},{$push:{address:newAddress}},{new:true});
+            return  res.sendStatus(200);   
+        }
+        else{
+            const insertAddress = await Address.create({user_id:id,address:newAddress});
+            return  res.sendStatus(200);
+        }
+        
+    } catch (error) {
+        console.log(error.message);
+        res.sendStatus(500); // Send an error response
+    }
+}
+
+
+const updateAddress = async (req, res) => {
+    try {
+        const id = req.session.user_id;
+        const index = req.params.index;
+        
+        const updatedAddress = req.body
+
+        const userAddress = await Address.findOne({ user_id: id });
+        if (!userAddress) {
+            return res.status(404).json({ message: 'User address not found' });
+        }
+
+        if (index < 0 || index >= userAddress.address.length) {
+            return res.status(400).json({ message: 'Invalid address index' });
+        }
+
+        userAddress.address[index] = updatedAddress;
+
+        await userAddress.save();
+
+        res.sendStatus(200);
+    } catch (error) {
+        console.log(error.message);
+        res.sendStatus(500);
+    }
+}
+
+
+const deleteAddress = async (req, res) => {
+    try {
+        const userId = req.session.user_id;
+        const addressId = req.params.addressId;
+
+        const userAddress = await Address.findOne({ user_id: userId });
+
+        if (!userAddress) {
+            return res.status(404).json({ message: 'User address not found' });
+        }
+
+        const addressIndex = userAddress.address.findIndex(addr => addr._id.toString() === addressId);
+
+        if (addressIndex === -1) {
+            return res.status(404).json({ message: 'Address not found' });
+        }
+
+        userAddress.address.splice(addressIndex, 1);
+
+        await userAddress.save();
+
+        res.sendStatus(200);
+    } catch (error) {
+        console.log(error.message);
+        res.sendStatus(500);
+    }
+}
+
+
+const addToCart = async (req, res) => {
+    try {
+       
+        const userId = req.session.user_id
+        const { productId, quantity } = req.body;
+        let userCart = await Cart.findOne({ userId });
+        if (!userCart) {
+            if (!userId) {
+                throw new Error('User ID is required to create a cart');
+            }
+            userCart = new Cart({
+                userId,
+                cartItems: [{ productId, quantity }]
+            });
+        } else { 
+            const existingItem = userCart.cartItems.find(item => item.productId === productId);
+            if (existingItem) {
+                
+                existingItem.quantity += quantity;
+            } else {
+                userCart.cartItems.push({ productId, quantity });
+            }
+        }
+        await userCart.save();
+        return res.status(200).json({ message: 'Item added to cart successfully' });
+    } catch (error) {
+        console.log(error.message);
+        return res.status(500).json({ error: 'Internal server error' });
+    }
+};
+
+
+
+
+
+
+module.exports = {
+    contactPage,
+    blogPage,
+    aboutPage,
+    blogDetailPage,
+    homePage,
+    productPage,
+    productDetail,
+    cartPage,
+    registrationPage,
+    insertUser,
+    loginPage,
+    otpPage,
+    otpVerification,
+    resentOTP,
+    verifyLogin,
+    userLogout,
+    userProfile,
+    updateUserProfile,
+    changePassword,
+    manageAddress,
+    newAddress,
+    updateAddress,
+    deleteAddress,
+    addToCart
+}
