@@ -1,31 +1,44 @@
-const isLogin = async(req,res,next)=>{
-    try {
+// const isLogin = async(req,res,next)=>{
+//     try {
     
-        if(req.session.user_id){}
-        else{
-            return res.redirect('/');
-        }
-        next();
+//         if(req.session.user_id){}
+//         else{
+//             return res.redirect('/');
+//         }
+//         next();
 
-    } catch (error) {
-        console.log(error.message);
-    }
-}
+//     } catch (error) {
+//         console.log(error.message);
+//     }
+// }
 
-const isLogout = async(req,res,next)=>{
-    try {
+// const isLogout = async(req,res,next)=>{
+//     try {
     
-        if(req.session.user_id){
-            return res.redirect('/login');
-        }
+//         if(req.session.user_id){
+//             return res.redirect('/login');
+//         }
+//         next();
+
+//     } catch (error) {
+//         console.log(error.message);
+//     }
+// }
+
+// module.exports = {
+//     isLogin,
+//     isLogout
+// }
+
+
+const userAuth = (req, res, next) => {
+    if (req.session.isUserAuthenticated) {
+        // User is authenticated, allow access to the next middleware or route handler
         next();
-
-    } catch (error) {
-        console.log(error.message);
+    } else {
+        // USer is not authenticated, redirect to the login page
+        res.redirect('/login');
     }
-}
+};
 
-module.exports = {
-    isLogin,
-    isLogout
-}
+module.exports = userAuth

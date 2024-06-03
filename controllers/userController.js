@@ -9,6 +9,10 @@ const Category = require('../model/admin/categorySchema');
 const Product = require('../model/admin/productSchema');
 const Address = require('../model/addressSchema');
 const Cart = require('../model/cartSchema');
+const user_route = require('../routes/userRoute');
+const Order = require('../model/orderSchema');
+const { default: mongoose } = require("mongoose");
+
 
 
 
@@ -99,8 +103,17 @@ const homePage = async (req, res) => {
     try {
         const categories = await Category.find({ is_delete: false });
         const products = await Product.find({ isDeleted: false });
+        //cart icon quantity display
+        const userId = req.session.user_id;
+        const userCart = await Cart.findOne({ userId });
+        const userCarts = await Cart.findOne({ userId }).populate('cartItems.productId');
+        const product = userCarts.cartItems.map(item => item.productId);
+        let totalProductsInCart = 0;
+        if (userCart) {
+            totalProductsInCart = userCart.cartItems.reduce((total, item) => total + item.quantity, 0);
+        }
 
-        res.render('index', { categories: categories, products: products });
+        res.render('index', { categories, products , totalProductsInCart, userCart:userCarts , product});
 
     } catch (error) {
         console.log(error.message);
@@ -152,9 +165,12 @@ const cartPage = async(req,res)=>{
 
 const registrationPage = async(req,res)=>{
     try {
-
-        res.render('registration');
-        
+        if(req.session.isUserAuthenticated){
+            res.redirect('/index.html');
+        }
+        else{
+            res.render('registration');
+        }
     } catch (error) {
         console.log(error.message);
     }
@@ -162,7 +178,12 @@ const registrationPage = async(req,res)=>{
 
 const loginPage = async(req,res)=>{
     try {
-        res.render('login');
+        if(req.session.isUserAuthenticated){
+            res.redirect('/index.html');
+        }
+        else{
+            res.render('login');
+        }
     } catch (error) {
         console.log(error.message);
     }
@@ -170,7 +191,11 @@ const loginPage = async(req,res)=>{
 
 const otpPage = async(req,res)=>{
     try {
-        res.render('otp')
+        if(req.session.isUserAuthenticated){
+            res.redirect('/index.html');
+        }else{
+            res.render('otp')
+        }
     } catch (error) {
         console.log(error.message);
     }
@@ -234,6 +259,7 @@ const verifyLogin = async(req,res)=>{
            if(passwordMatch){
             if(userData.is_verified){
                 req.session.user_id = userData._id;
+                req.session.isUserAuthenticated = true;
                 res.redirect('/index.html');
             }else{
                 res.render('login',{message:"your Account is blocked by Admin"});
@@ -389,7 +415,7 @@ const newAddress = async (req, res) => {
         
     } catch (error) {
         console.log(error.message);
-        res.sendStatus(500); // Send an error response
+        res.sendStatus(500); 
     }
 }
 
@@ -466,9 +492,8 @@ const addToCart = async (req, res) => {
                 cartItems: [{ productId, quantity }]
             });
         } else { 
-            const existingItem = userCart.cartItems.find(item => item.productId === productId);
+             const existingItem = userCart.cartItems.find(item => item.productId.equals(productId));
             if (existingItem) {
-                
                 existingItem.quantity += quantity;
             } else {
                 userCart.cartItems.push({ productId, quantity });
@@ -482,6 +507,78 @@ const addToCart = async (req, res) => {
     }
 };
 
+const updateQuantity = async (req, res) => {
+    try {
+        const userId = req.session.user_id;
+        const productId = req.query.productId;
+        const change = parseInt(req.query.change);
+        // console.log("userId :"+ userId);
+        // console.log("proId :"+ productId);
+        // console.log("change :"+ change);
+
+
+
+        let cart = await Cart.findOne({ userId: userId });
+
+        const index = cart.cartItems.findIndex(item => item.productId.equals(productId));
+
+        if (index !== -1) {
+            cart.cartItems[index].quantity += change;
+
+            if (cart.cartItems[index].quantity <= 0) {
+                cart.cartItems.splice(index, 1);
+            }
+        }
+
+        await cart.save();
+        res.sendStatus(200)
+
+    } catch (error) {
+        console.log(error.message);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+}
+
+const removeFromCart = async(req,res)=>{
+    try {
+        const productId = req.query.productId
+        const userId = req.session.user_id
+
+        const cart = await Cart.findOne({userId:userId})
+        const index = cart.cartItems.findIndex((value)=>{
+            return value.productId.toString()===productId
+        })
+
+        cart.cartItems.splice(index, 1)
+        await cart.save()
+        res.sendStatus(200)
+
+    } catch (error) {
+        console.log(error.message); 
+        res.status(500).json({ error: 'Internal server error' });      
+    }
+}
+
+const loadCheckout = async(req,res)=>{
+    try {
+        const userId = req.session.user_id
+        const userAddress = await Address.find({ user_id:userId }); 
+        const cart = await Cart.findOne({ userId:userId }).populate('cartItems.productId');
+
+        if (!cart) {
+            // Handle case where cart doesn't exist
+            res.render('checkoutPage', { userAddress, cart: null });
+            return;
+        }
+
+        res.render('checkoutPage', { userAddress, cart })
+    } catch (error) {
+        console.log(error.message);
+    }
+}
+
+
+  
 
 
 
@@ -511,5 +608,9 @@ module.exports = {
     newAddress,
     updateAddress,
     deleteAddress,
-    addToCart
+    addToCart,
+    updateQuantity,
+    removeFromCart,
+    loadCheckout,
+    
 }

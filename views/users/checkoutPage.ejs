@@ -1,0 +1,709 @@
+<%- include('../layouts/userLayout/headerCart.ejs')%>	
+
+<link rel="stylesheet" type="text/css" href="css/theme.min.css">
+<!-- <link rel="stylesheet" type="text/css" href="css/theme-rtl.min.css"> -->
+<!-- <link rel="stylesheet" type="text/css" href="css/user.min.css"> -->
+<!-- <link rel="stylesheet" type="text/css" href="css/user-rtl.min.css"> -->
+
+
+<div class="row justify-content-center ">
+    <div class="col-lg-10">
+        <div class="row g-3 mt-30" style="margin-top: 10px;">
+          <div class="col-xl-4 order-xl-1 mt-30">
+            <div class="card mt-30">
+                <div class="card-header bg-body-tertiary d-flex flex-between-center">
+                    <h5 class="mb-0">Order Summary</h5>
+                    <a class="btn btn-falcon-default btn-sm text-600" href="/shoping-cart.html"><span class="fas fa-pencil-alt"></span></a>
+                </div>
+                <div class="card-body">
+                  <% function calculateSubtotal(cartItems) { %>
+                    <% let subtotal = 0; %>
+                    <% cartItems.forEach(item => { %>
+                        <% subtotal += (item.productId.price * item.quantity); %>
+                    <% }); %>
+                    <% return subtotal.toFixed(2); %>
+                <% } %>
+                <% function calculateTotal(cartItems) { %>
+                  <% let subtotal = 0; %>
+                  <% cartItems.forEach(item => { %>
+                      <% subtotal += (item.productId.price * item.quantity); %>
+                  <% }); %>
+                  <% const shippingCost = 60; %> 
+                  <% const couponDiscount = 55; %> 
+                  <% const total = subtotal + shippingCost - couponDiscount; %>
+                  <% return total.toFixed(2); %>
+              <% } %>
+              
+                    <table class="table table-borderless fs-10 mb-0">
+                        <% cart.cartItems.forEach(item => { %>
+                            <tr class="border-bottom">
+                                <th class="ps-0 pt-0"><%= item.productId.name %> x <%= item.quantity %>
+                                    <div class="text-400 fw-normal fs-11"><%= item.productId.description %></div>
+                                </th>
+                                <th class="pe-0 text-end">₹<%= item.productId.price * item.quantity %></th>
+                            </tr>
+                        <% }); %>
+                        <tr class="border-bottom">
+                            <th class="ps-0">Subtotal</th>
+                            <th class="pe-0 text-end">₹<%= calculateSubtotal(cart.cartItems) %></th>
+                        </tr>
+                        <tr class="border-bottom">
+                            <th class="ps-0">Coupon: <span class="text-success">40SITEWIDE</span></th>
+                            <th class="pe-0 text-end">-₹55</th>
+                        </tr>
+                        <tr class="border-bottom">
+                            <th class="ps-0">Shipping</th>
+                            <th class="pe-0 text-end">₹60</th>
+                        </tr>
+                        <tr>
+                            <th class="ps-0 pb-0">Total</th>
+                            <th class="pe-0 text-end pb-0">₹<%= calculateTotal(cart.cartItems) %></th>
+                        </tr>
+                    </table>
+                </div>
+                <div class="card-footer d-flex justify-content-between bg-body-tertiary">
+                    <div class="fw-semi-bold">Payable Total</div>
+                    <div class="fw-bold">₹<%= calculateTotal(cart.cartItems) %></div>
+                </div>
+            </div>
+        </div>
+        
+            
+            <div class="col-xl-8">
+              <div class="card mb-3">
+                <div class="card-header bg-body-tertiary">
+                  <div class="row flex-between-center">
+                    <div class="col-sm-auto">
+                      <h5 class="mb-2 mb-sm-0">Your Shipping Address</h5>
+                    </div>
+                    <div class="col-sm-auto">
+                        <button class="btn btn-falcon-default btn-sm" id="toggleAddressForm">
+                            <span class="fas fa-plus me-2" data-fa-transform="shrink-2"></span>Add New Address
+                        </button>
+                    </div> 
+                    <div class="card-body" id="addAddressForm" style="display: none;">
+                        <div class="container">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="Name">Name</label>
+                                        <input type="text" class="form-control" id="Name" name="Name" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="email">Email</label>
+                                        <input type="email" class="form-control" id="email" name="email" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="Mobile">Mobile</label>
+                                        <input type="number" class="form-control" id="Mobile" name="Mobile" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="pin">PIN</label>
+                                        <input type="number" class="form-control" id="pin" name="pin"  required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="Locality">Locality</label>
+                                        <input type="text" class="form-control" id="Locality" name="Locality" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="address">Address</label>
+                                        <textarea class="form-control" id="address" name="address" rows="3" required></textarea>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="city">City</label>
+                                        <input type="text" class="form-control" id="city" name="city" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="state">State</label>
+                                        <input type="text" class="form-control" id="state" name="state" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-12">
+                                    <div class="radio-group">
+                                        <div class="form-group form-check">
+                                            <input type="radio" class="form-check-input" id="isHome" name="addressType" value="home" checked>
+                                            <label class="form-check-label" for="isHome">Home</label>
+                                        </div>
+                                        <div class="form-group form-check">
+                                            <input type="radio" class="form-check-input" id="isWork" name="addressType" value="work">
+                                            <label  class="form-check-label" for="isWork">Work </label>
+                                        </div>
+                                    </div>
+                                    <div class="submit-button-container">
+                                        <div class="form-group">
+                                            <button type="submit" class="btn btn-primary" id="submitButton">Submit</button>
+                                        </div>
+                                    </div>
+                            </div>
+                        </div>
+                    </div>                 
+                </div>
+                </div>
+                <div class="card-body">
+                  <div class="row">
+                    <% if (userAddress && userAddress.length > 0) { %>
+                        <% let i = 0;%>
+                          <% userAddress.forEach((singleAddress) => { %>
+                            <% singleAddress.address.forEach(address => { %>
+                              <div class="col-md-6 mb-3 mb-md-0">
+                                  <div class="form-check mb-0 custom-radio radio-select">
+                                      <input class="form-check-input" id="address-<%= i + 1 %>" type="radio" value="<%= address._id %>" name="clientName" <% if (i === 0) { %> checked <% } %> />
+                                      <label class="form-check-label mb-0 fw-bold d-block" for="address-<%= i + 1 %>"><%= address.Name %><span class="radio-select-content"><span><%= address.address %>,<br /><%= address.city %>,<br /><%= address.state %> <%= address.PIN %><span class="d-block mb-0 pt-2"><%= address.Mobile %></span></span></span></label>
+                                  </div>
+                              </div>
+                              <% i++ %>
+                              <% }); %>
+                          <% }); %>
+                      <% } else { %>
+                          <p>No addresses found.</p>
+                      <% } %>
+                  </div>
+              </div>
+              </div>
+
+
+              <div class="flex-w flex-sb-m bor15 p-t-18 p-b-15 p-lr-40 p-lr-15-sm ">
+                <div class="flex-w flex-m m-r-20 m-tb-5">
+                    <input class="stext-104 cl2 plh4 size-117 bor13 p-lr-20 m-r-10 m-tb-5" type="text" name="coupon" placeholder="Coupon Code">
+                    <div class="flex-c-m stext-101 cl2 size-118 bg8 bor13 hov-btn3 p-lr-15 trans-04 pointer m-tb-5" id="applyCouponButton">
+                        Apply coupon
+                    </div>
+                </div>
+              </div>
+
+              <div class="card">
+                <div class="card-header bg-body-tertiary">
+                  <h5 class="mb-0">Payment Method</h5>
+                </div>
+                <div class="card-body">
+                  <form>
+                    <div class="form-check mb-0"><input class="form-check-input" type="radio" value="OnlinePayment" id="OnlinePayment" checked="checked" name="PAYMENT" /><label class="form-check-label mb-2 fs-8" for="OnlinePayment">Online Payment</label></div>
+                    <div class="form-check mb-0"><input class="form-check-input" type="radio" value="CashOnDelivery" id="CashOnDelivery" checked="checked" name="PAYMENT" /><label class="form-check-label mb-2 fs-8" for="CashOnDelivery">Cash On Delivery</label></div>
+                    <div class="form-check mb-0"><input class="form-check-input" type="radio" value="UserWallet" id="UserWallet" checked="checked" name="PAYMENT" /><label class="form-check-label mb-2 fs-8" for="UserWallet">User Wallet</label></div>
+                    
+                    <!-- <div class="border-bottom border-dashed my-5"></div> -->
+                    <div class="row">
+                        
+                      <!-- <div class="col-md-7 col-xl-12 col-xxl-7 px-md-3 mb-xxl-0 position-relative">
+                        <div class="d-flex"><img class="me-3" src="../../assets/img/icons/shield.png" alt="" width="60" height="60" />
+                          <div class="flex-1">
+                            <h5 class="mb-2">Buyer Protection</h5>
+                            <div class="form-check mb-0"><input class="form-check-input" id="protection-option-1" type="checkbox" checked="checked" /><label class="form-check-label mb-0" for="protection-option-1"> <strong>Full Refund </strong>If you don't <br class="d-none d-md-block d-lg-none" />receive your order</label></div>
+                            <div class="form-check"><input class="form-check-input" id="protection-option-2" type="checkbox" checked="checked" /><label class="form-check-label mb-0" for="protection-option-2"> <strong>Full or Partial Refund, </strong>If the product is not as described in details</label></div><a class="fs-10 ms-3 ps-2" href="#!">Learn More<span class="fas fa-caret-right ms-1" data-fa-transform="down-2">    </span></a>
+                          </div>
+                        </div>
+                        <div class="vertical-line d-none d-md-block d-xl-none d-xxl-block"> </div>
+                      </div> -->
+                      <div class="col-md-5 col-xl-12 col-xxl-5 ps-lg-4 ps-xl-2 ps-xxl-5 text-center text-md-start text-xl-center text-xxl-start">
+                        <div class="border-bottom border-dashed d-block d-md-none d-xl-block d-xxl-none my-4"></div>
+                        <div class="fs-7 fw-semi-bold">All Total: <span class="text-primary">₹<%= calculateTotal(cart.cartItems) %></span></div><button id='confirmPayButton' class="btn btn-success mt-3 px-5" type="submit">Confirm &amp; Pay</button>
+                       
+                      </div>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const addAddressForm = document.getElementById('addAddressForm');
+        const toggleAddressFormButton = document.getElementById('toggleAddressForm');
+
+        toggleAddressFormButton.addEventListener('click', function () {
+            if (addAddressForm.style.display === 'none') {
+                addAddressForm.style.display = 'block';
+            } else {
+                addAddressForm.style.display = 'none';
+            }
+        });
+    });
+
+    document.getElementById('submitButton').addEventListener('click', async function() {
+        const formData = {
+            Name: document.getElementById('Name').value,
+            email: document.getElementById('email').value,
+            Mobile: document.getElementById('Mobile').value,
+            pin: document.getElementById('pin').value,
+            Locality: document.getElementById('Locality').value,
+            address: document.getElementById('address').value,
+            city: document.getElementById('city').value,
+            state: document.getElementById('state').value,
+            is_Home: document.getElementById('isHome').checked,
+            is_Work: document.getElementById('isWork').checked
+        };
+
+        try {
+            const response = await fetch('/newAddress', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            });
+
+            if (response.ok) {
+                console.log('Address added successfully');
+                window.location.href = "/checkoutPage";
+            } else {
+                console.error('Failed to add address');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    });
+
+
+    document.getElementById('confirmPayButton').addEventListener('click', async function(event) {
+    event.preventDefault(); // Prevent the default form submission behavior
+
+    const addressRadioButtons = document.querySelectorAll('input[name="clientName"]:checked');
+    const paymentRadioButtons = document.querySelectorAll('input[name="PAYMENT"]:checked');
+
+    if (addressRadioButtons.length === 0 || paymentRadioButtons.length === 0) {
+        Swal.fire('Error', 'Please select both an address and a payment method.', 'error');
+        return;
+    }
+
+    const selectedAddressId = addressRadioButtons[0].value;
+    const selectedPaymentMethod = paymentRadioButtons[0].value;
+
+    const swalWithBootstrapButtons = Swal.mixin({
+        customClass: {
+            confirmButton: "btn btn-success",
+            cancelButton: "btn btn-danger"
+        },
+        buttonsStyling: true
+    });
+
+    swalWithBootstrapButtons.fire({
+        title: 'Are you sure you want to place this order?',
+        text: "You won't be able to revert this!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, place it!',
+        cancelButtonText: 'No, cancel!',
+        reverseButtons: true
+    }).then((result) => {
+        if (result.isConfirmed) {
+            confirmOrder(selectedAddressId, selectedPaymentMethod);
+        } else if (result.dismiss === Swal.DismissReason.cancel) {
+            swalWithBootstrapButtons.fire(
+                'Cancelled',
+                'Your order is safe :)',
+                'error'
+            );
+        }
+    });
+});
+
+async function confirmOrder(addressId, paymentMethod) {
+    try {
+        const response = await fetch('/place-order', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ addressId, paymentMethod })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            if (paymentMethod === "OnlinePayment") {
+                const options = {
+                    key: data.key_id,
+                    amount: data.amount,
+                    currency: "INR",
+                    name: "Zephyr",
+                    description: "Transaction Description",
+                    image: "https://example.com/your_logo",
+                    order_id: data.razorpayOrderId,
+                    handler: function(response) {
+                        verifyPayment(response.razorpay_payment_id, response.razorpay_order_id, response.razorpay_signature, data.orderId);
+                    },
+                    prefill: {
+                        name: "Customer Name",
+                        email: "customer_email@example.com",
+                        contact: "customer_phone"
+                    },
+                    theme: {
+                        color: "#192e68"
+                    },
+                    modal: {
+                        ondismiss: function() {
+                            window.location.href = '/orders';
+                        }
+                    }
+                };
+                const paymentGateway = new Razorpay(options);
+
+                paymentGateway.on('payment.failed', function(response) {
+                    Swal.fire('Payment Failed', 'Your payment could not be processed. Please try again.', 'error').then(() => {
+                        window.location.href = '/orders';
+                    });
+                });
+
+                paymentGateway.open();
+            } else {
+                Swal.fire({
+                    title: "Order Placed",
+                    text: "Your Order is Confirmed",
+                    icon: "success"
+                }).then(() => {
+                    window.location.href = `/orderDetails?orderId=${data.orderId}`;
+                });
+            }
+        } else {
+            Swal.fire('Sorry', data.message, 'warning');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        Swal.fire('Error', 'Network Error. Try again.', 'error');
+    }
+}
+
+async function verifyPayment(paymentId, razorpayOrderId, signature, orderId) {
+    console.log("Verifying Payment:", { paymentId, razorpayOrderId, signature, orderId }); // Debugging line
+    try {
+        const response = await fetch('/verifyPayment', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                paymentId: paymentId,
+                razorpayOrderId: razorpayOrderId,
+                razorpaySignature: signature,
+                orderId: orderId
+            })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            Swal.fire({
+                title: "Order Placed",
+                text: "Your Order is Confirmed",
+                icon: "success"
+            }).then(() => {
+                window.location.href = `/orderDetails?orderId=${orderId}`;
+            });
+        } else {
+            Swal.fire('Error', 'Payment verification failed. Please try again.', 'error').then(() => {
+                window.location.href = '/orders';
+            });
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        Swal.fire('Error', 'Network Error. Try again.', 'error');
+    }
+}
+
+
+
+    // document.getElementById('confirmPayButton').addEventListener('click', async function(event) {
+    //     event.preventDefault(); // Prevent the default form submission behavior
+    //     const cashOnDeliveryChecked = document.getElementById('CashOnDelivery').checked;
+    //     const UserWallet = document.getElementById('UserWallet').checked;
+
+
+    //     if (cashOnDeliveryChecked || UserWallet) {
+    //         // Prompt for confirmation before proceeding with Cash on Delivery
+    //         swal.fire({
+    //             title: "Confirm Cash on Delivery",
+    //             text: "Are you sure you want to proceed with Cash on Delivery?",
+    //             icon: "info",
+    //             showCancelButton: true,
+    //             confirmButtonText: "Yes, proceed",
+    //             cancelButtonText: "No, go back",
+    //         }).then((result) => {
+    //             if (result.isConfirmed) {
+    //                 // If confirmed, proceed with the order placement
+    //                 verifyAddress();
+    //             }
+    //         });
+    //     } else {
+    //         // If online payment is selected, initiate Razorpay checkout
+    //         initiateRazorpayCheckout();
+    //     }
+    // });
+
+    // async function verifyAddress() {
+    //     console.log("klmfdkljadflkjdsfkjlaskdfjlaksdfjasldkfjlksdfj");
+    //     const selectedAddressId = document.querySelector('input[name="clientName"]:checked');
+    //     const paymentMethodSelected =document.querySelectorAll('input[name="PAYMENT"]:checked');
+
+    //     if (!selectedAddressId) {
+    //         swal.fire({
+    //             text: "Select an address to continue!",
+    //             icon: "error"
+    //         });
+    //     } else if (!paymentMethodSelected) {
+    //         swal.fire({
+    //             text: "Please select Cash on Delivery as the payment method!",
+    //             icon: "error"
+    //         });
+    //     } else {
+    //         const address = selectedAddressId.value;
+    //         const selectAddress = address;
+    //         const paymentMethod = paymentMethodSelected[0].value;
+    //         console.log("friend"+paymentMethod);
+
+    //         try {
+    //             const response = await fetch('/place-order', {
+    //                 method: "POST",
+    //                 headers: { 'Content-type': 'application/json' },
+    //                 body: JSON.stringify({
+    //                     addressId: selectAddress,
+    //                     paymentMethod: paymentMethod
+    //                 })
+    //             });
+
+    //             if (response.ok) {
+    //                 const data = await response.json(); // Parse response JSON
+    //                 const placeOrder_id = data.placeOrder_id; // Get placeOrder_id from response
+
+    //                 if (placeOrder_id) {
+    //                     // Show success message
+    //                     swal.fire({
+    //                         text: "Your order has been placed successfully!",
+    //                         icon: "success"
+    //                     }).then(() => {
+    //                         // Redirect to orderDetails with placeOrder_id
+    //                         window.location.href = `/orderDetails?orderId=${placeOrder_id}`;
+    //                     });
+    //                 } else {
+    //                     console.error('Error: placeOrder_id is undefined');
+    //                     // Show error message
+    //                     swal.fire({
+    //                         text: "Failed to retrieve order details. Please try again later.",
+    //                         icon: "error"
+    //                     });
+    //                 }
+    //             } else {
+    //                 // Show error message
+    //                 swal.fire({
+    //                     text: "Failed to place order. Please try again later.",
+    //                     icon: "error"
+    //                 });
+    //             }
+    //         } catch (error) {
+    //             console.error('Error:', error);
+    //             // Handle fetch error
+    //             swal.fire({
+    //                 text: "Failed to place order. Please try again later.",
+    //                 icon: "error"
+    //             });
+    //         }
+    //     }
+    // }
+
+    // function initiateRazorpayCheckout() {
+    //     // Fetch the total amount from the server or use the calculated total from the page
+    //     const totalAmount = <%= calculateTotal(cart.cartItems) * 100 %>; // Amount in paisa
+
+    //     // Make a POST request to your server to create a Razorpay order
+    //     fetch('/place-order', {
+    //         method: 'POST',
+    //         headers: {
+    //             'Content-Type': 'application/json'
+    //         },
+    //         body: JSON.stringify({ totalAmount })
+    //     })
+    //     .then(response => response.json())
+    //     .then(data => {
+    //         // Initialize Razorpay checkout
+    //         const options = {
+    //             key: data.key,
+    //             amount: data.amount,
+    //             currency: 'INR',
+    //             order_id: data.id,
+    //             name: 'Your Company Name',
+    //             description: 'Payment for Your Purchase',
+    //             handler: function(response) {
+    //                 // Handle successful payment
+    //                 console.log(response);
+    //                 // Redirect or show success message
+    //                 window.location.href = '/payment-success'; // Redirect to a success page
+    //             },
+    //             prefill: {
+    //                 email: 'user@example.com', // Use the customer's email
+    //                 contact: '9999999999' // Use the customer's phone number
+    //             }
+    //         };
+    //         const rzp = new Razorpay(options);
+    //         rzp.open();
+    //     })
+    //     .catch(error => {
+    //         console.error('Error:', error);
+    //         // Show error message
+    //         swal.fire({
+    //             text: "Failed to initiate payment. Please try again later.",
+    //             icon: "error"
+    //         });
+    //     });
+    // }
+</script>
+
+
+
+
+
+
+
+<!-- <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const addAddressForm = document.getElementById('addAddressForm');
+        const toggleAddressFormButton = document.getElementById('toggleAddressForm');
+
+        toggleAddressFormButton.addEventListener('click', function () {
+            if (addAddressForm.style.display === 'none') {
+                addAddressForm.style.display = 'block';
+            } else {
+                addAddressForm.style.display = 'none';
+            }
+        });
+    });
+
+
+    document.getElementById('submitButton').addEventListener('click', async function() {
+        const formData = {
+            Name: document.getElementById('Name').value,
+            email: document.getElementById('email').value,
+            Mobile: document.getElementById('Mobile').value,
+            pin: document.getElementById('pin').value,
+            Locality: document.getElementById('Locality').value,
+            address: document.getElementById('address').value,
+            city: document.getElementById('city').value,
+            state: document.getElementById('state').value,
+            is_Home: document.getElementById('isHome').checked,
+            is_Work: document.getElementById('isWork').checked
+        };
+
+        
+
+        try {
+            const response = await fetch('/newAddress', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            });
+
+            if (response.ok) {
+                console.log('Address added successfully');
+                window.location.href = "/checkoutPage";
+            } else {
+                console.error('Failed to add address');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    });
+
+
+    document.getElementById('confirmPayButton').addEventListener('click', async function(event) {
+    event.preventDefault(); // Prevent the default form submission behavior
+    verifyAddress(); // Call verifyAddress function
+    });
+
+async function verifyAddress() {
+    const selectedAddressId = document.querySelector('input[name="clientName"]:checked');
+    const cashOnDeliveryChecked = document.getElementById('CashOnDelivery').checked;
+
+    if (!selectedAddressId) {
+        swal.fire({
+            text: "Select an address to continue!",
+            icon: "error"
+        });
+    } else if (!cashOnDeliveryChecked) {
+        swal.fire({
+            text: "Please select Cash on Delivery as the payment method!",
+            icon: "error"
+        });
+    } else {
+        const address = selectedAddressId.value;
+        const selectAddress = address;
+        const paymentMethod = "CashOnDelivery";
+
+        try {
+            const response = await fetch('/place-order', {
+                method: "POST",
+                headers: { 'Content-type': 'application/json' },
+                body: JSON.stringify({
+                    addressId: selectAddress,
+                    paymentMode: paymentMethod
+                })
+            });
+
+            if (response.ok) {
+                const data = await response.json(); // Parse response JSON
+                const placeOrder_id = data.placeOrder_id; // Get placeOrder_id from response
+
+                if (placeOrder_id) {
+                    // Show success message
+                    swal.fire({
+                        text: "Your order has been placed successfully!",
+                        icon: "success"
+                    }).then(() => {
+                        // Redirect to orderDetails with placeOrder_id
+                        window.location.href = `/orderDetails?orderId=${placeOrder_id}`;
+                    });
+                } else {
+                    console.error('Error: placeOrder_id is undefined');
+                    // Show error message
+                    swal.fire({
+                        text: "Failed to retrieve order details. Please try again later.",
+                        icon: "error"
+                    });
+                }
+            } else {
+                // Show error message
+                swal.fire({
+                    text: "Failed to place order. Please try again later.",
+                    icon: "error"
+                });
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            // Handle fetch error
+            swal.fire({
+                text: "Failed to place order. Please try again later.",
+                icon: "error"
+            });
+        }
+    }
+}
+
+
+
+
+</script> -->
+
+
+<%- include('../layouts/userLayout/footerCart.ejs')%>		
+

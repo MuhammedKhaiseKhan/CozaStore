@@ -1,0 +1,178 @@
+<%- include('../layouts/userLayout/headerProDetail.ejs')%>
+
+<link rel="stylesheet" href="css/main.css">
+<link rel="stylesheet" href="/css/style3.css">
+
+<style>
+.walletCard {
+    background: linear-gradient(135deg, #6b73ff, #000dff);
+    border-radius: 15px;
+    padding: 20px;
+    color: #ffffff;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 250px;
+}
+
+.walletBody {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+.walletLogo {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+}
+
+.walletLogo img {
+    /* width: 50px;
+    height: 50px; */
+}
+
+.amount-section {
+    text-align: left;
+    margin-top: 90px; /* Adjust the amount text position */
+}
+
+.WalletText {
+    margin: 0;
+    font-size: 1.0em;
+}
+
+.WalletAmount {
+    margin: 0;
+    font-size: 2em;
+    font-weight: bold;
+}
+
+.title {
+    font-size: 1.5em;
+    position: absolute;
+    top: 5px;
+    right: 10px;
+}
+
+.line {
+    border-top: 1px solid #ffffff; /* Change to border-top to fix the line issue */
+    margin: 10px 0;
+    width: 100%; /* Ensure the line spans the full width */
+}
+
+.table thead {
+    background-color: #f8f9fa;
+}
+
+.table tbody tr {
+    transition: background-color 0.3s;
+}
+
+.table tbody tr:hover {
+    background-color: #f1f1f1;
+}
+</style>
+
+<!-- End Banner Area -->
+<div class="container">
+    <div class="row" style="margin-top: 134px;">
+        <div class="col-xl-3 col-lg-4 col-md-5">
+            <div class="sidebar-categories">
+                <div class="head"><%= user.fname %></div>
+            </div>
+            <div class="sidebar-categories" style="margin-top: 15px;">
+                <ul class="main-categories">
+                    <li class="main-nav-list"><a data-toggle="collapse" href="#fruitsVegetable" aria-expanded="false" aria-controls="fruitsVegetable">
+                        <span class="fa-regular fa-user"></span>&nbsp;&nbsp;&nbsp;ACCOUNT SETTINGS</a>
+                        <ul class="collapse" id="fruitsVegetable" data-toggle="collapse" aria-expanded="false" aria-controls="fruitsVegetable">
+                            <li class="main-nav-list child"><a href="/userProfile">Personal Information</a></li>
+                            <li class="main-nav-list child"><a href="/manageAddress?id=<%= user._id %>">Manage Addresses</a></li>								
+                        </ul>
+                       </li>
+                    <li class="main-nav-list">
+                        <a  href="/orders?id=<%= user._id %>" aria-expanded="false" aria-controls="fruitsVegetable">
+                            <span class="fa-solid fa-bag-shopping"></span>&nbsp;&nbsp;&nbsp;MY ORDERS</a>
+                    </li>
+                    <li class="main-nav-list">
+                        <a  href="/wishlist?id=<%= user._id %>" aria-expanded="false" aria-controls="fruitsVegetable">
+                            <span class="fa-regular fa-heart"></span>&nbsp;&nbsp;&nbsp;WISHLIST</a>
+                    </li>
+                    <li class="main-nav-list active">
+                        <a  href="/wallet?id=<%= user._id %>" aria-expanded="false" aria-controls="fruitsVegetable">
+                            <span class="fa-solid fa-wallet"></span>&nbsp;&nbsp;&nbsp;WALLET</a>
+                    </li>
+                    <li class="main-nav-list">
+                        <a  href="/coupens" aria-expanded="false" aria-controls="fruitsVegetable">
+                            <span class="fa-solid fa-tags"></span>&nbsp;&nbsp;&nbsp;Coupons</a>
+                    </li>
+                    <li class="main-nav-list">
+                        <a  href="/logout" aria-expanded="false" aria-controls="fruitsVegetable">
+                            <span class="fa-solid fa-arrow-up-right-from-square fa-flip-horizontal"></span>&nbsp;&nbsp;&nbsp;Logout</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="col-xl-9 col-lg-8 col-md-7" id="profileDetails">
+            <div class="row" style="background-color: #ffffff; margin-bottom: 10%;">
+                <div class="form-group col-lg-12 pt-3 d-flex justify-content-between align-items-center">
+                    <h3 class="mb-4 text-secondary"> User Wallet</h3>
+                </div>
+                <div class="container py-1">
+                    <div class="row justify-content-center">
+                        <div class="col-md-8"> 
+                            <div class="card card-custom walletCard">
+                                <div class="card-body walletBody">
+                                    <div class="card-icon walletLogo">
+                                        <img src="/images/icons/logo-02.png" alt="Icon">
+                                    </div>
+                                    <div class="amount-section">
+                                        <h4 class="card-title WalletText" style="color: #dedee2;">Balance :</h4>
+                                        <h2 class="card-text WalletAmount">₹ <%= wallet.walletAmount %></h2>
+                                    </div>
+                                    <div class="title">CozaPay</div>
+                                </div>
+                                <hr class="line">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-12">
+                    <% if (wallet.transactionHistory.length > 0) { %>
+                    <table class="table">
+                        <thead class="thead-light">
+                          <tr>
+                            <th scope="col">SL</th>
+                            <th scope="col">Amount</th>
+                            <th scope="col">Type</th>
+                            <th scope="col">Date</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                            <% for (let i = 0 ; i < wallet.transactionHistory.length ; i++){ %> 
+                          <tr>
+                            <th scope="row"><%= i+1 %></th>
+                            <td><%= wallet.transactionHistory[i].amount %></td>
+                            <td><%= wallet.transactionHistory[i].PaymentType %></td>
+                            <td><%= new Date(wallet.transactionHistory[i].date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }) %></td>
+                          </tr>
+                          <% } %>
+                        </tbody>
+                      </table>
+                      <% }else { %> 
+                        <h3 class="text-danger" style="display: flex; align-items: center; justify-content: center;"> No Transactions!</h3>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<%- include('../layouts/userLayout/footerProDetail.ejs')%>

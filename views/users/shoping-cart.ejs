@@ -17,8 +17,7 @@
 		
 
 	<!-- Shoping Cart -->
-	<form class="bg0 p-t-75 p-b-85">
-		<div class="container">
+		<div class="container ">
 			<div class="row">
 				<div class="col-lg-10 col-xl-7 m-lr-auto m-b-50">
 					<div class="m-l-25 m-r--38 m-lr-0-xl">
@@ -30,9 +29,10 @@
 									<th class="column-3">Price</th>
 									<th class="column-4">Quantity</th>
 									<th class="column-5">Total</th>
+									<th class="column-6">Actions</th>
 								</tr>
 	
-								<% if (userCart && userCart.cartItems.length > 0) { %>
+								<% if (userCart &&  userCart.cartItems.length > 0) { %>
 									<% userCart.cartItems.forEach(item => { %>
 										<tr class="table_row">
 											<td class="column-1">
@@ -41,33 +41,40 @@
 												</div>
 											</td>
 											<td class="column-2"><%= item.productId.productName %></td>
-											<td class="column-3">₹ <%= item.productId.price %></td>
+											<td class="column-3" id="price<%= item.productId._id  %>">₹ <%= item.productId.price %></td>
 											<td class="column-4">
-												<div class="wrap-num-product flex-w m-l-auto m-r-0">
-													<div class="btn-num-product-down cl8 hov-btn3 trans-04 flex-c-m decrease-quantity" onclick="decreaseQuantity(event)">
+												<!-- <div class="wrap-num-product flex-w m-l-auto m-r-0">
+													<div class="btn-num-product-down cl8 hov-btn3 trans-04 flex-c-m decrease-quantity " data-product-id="<%= item.productId._id %>">
 														<i class="fs-16 zmdi zmdi-minus"></i>
 													</div>
+
+													<input class="mtext-104 cl3 txt-center num-product" id="quantity<%= item.productId._id %>" type="number" name="num-product" value="<%= item.quantity %>" min="1" max="5" readonly>
 	
-													<input class="mtext-104 cl3 txt-center num-product" type="number" name="num-product" value="1" min="1" max="5" readonly>
-	
-													<div class="btn-num-product-up cl8 hov-btn3 trans-04 flex-c-m increase-quantity" onclick="increaseQuantity(event)">
+													<div class="btn-num-product-up cl8 hov-btn3 trans-04 flex-c-m increase-quantity"  data-product-id="<%= item.productId._id %>">
 														<i class="fs-16 zmdi zmdi-plus"></i>
 													</div>
-												</div>
+												</div> -->
+												<button class="decrease-quantity btn-light btn" data-product-id="<%= item.productId._id  %>" data-in-stock="<%= item.productId.inStock%>"> - </button>
+												<span class="quantity" id="quantity<%= item.productId._id  %>"><%= item.quantity %></span>
+												<button class="increase-quantity btn-light btn" data-product-id="<%= item.productId._id  %>" data-in-stock="<%= item.productId.inStock%>" > + </button>
 											</td>
-											<td class="column-5">₹ <span id="total<%= item.productId._id %>"><%= item.productId.price * item.quantity %></span></td>
+											<td class="column-5 cartTable">₹ <span class="priceShow" id="total<%= item.productId._id %>"><%= item.productId.price * item.quantity %></span></td>
+											<td class="column-6">
+												<button class="remove-item btn btn-danger" style="margin-right: 10px;" data-product-id="<%= item.productId._id %>" onclick="removeFromCart('<%= item.productId._id %>')">Remove</button>
+											</td>
 										</tr>
+										
 									<% }); %>
-								<% } else { %>
-									<!-- Handle case where cart is empty -->
-									<tr>
-										<td colspan="5" class="text-center">Your cart is empty</td>
-									</tr>
-								<% } %>
+									<% } else { %>
+										<!-- Handle case where cart is empty -->
+										<tr>
+											<td colspan="6" class="text-center">Your cart is empty</td>
+										</tr>
+									<% } %>
 							</table>
 						</div>
 
-						<div class="flex-w flex-sb-m bor15 p-t-18 p-b-15 p-lr-40 p-lr-15-sm">
+						<!-- <div class="flex-w flex-sb-m bor15 p-t-18 p-b-15 p-lr-40 p-lr-15-sm">
 							<div class="flex-w flex-m m-r-20 m-tb-5">
 								<input class="stext-104 cl2 plh4 size-117 bor13 p-lr-20 m-r-10 m-tb-5" type="text" name="coupon" placeholder="Coupon Code">
 									
@@ -79,7 +86,7 @@
 							<div class="flex-c-m stext-101 cl2 size-119 bg8 bor13 hov-btn3 p-lr-15 trans-04 pointer m-tb-10">
 								Update Cart
 							</div>
-						</div>
+						</div> -->
 					</div>
 				</div>
 
@@ -95,11 +102,8 @@
 									Subtotal:
 								</span>
 							</div>
-
 							<div class="size-209">
-								<span class="mtext-110 cl2">
-									$79.65
-								</span>
+								<span id="subtotalAmount" class="mtext-110 cl2">₹ 0.00</span>
 							</div>
 						</div>
 
@@ -109,41 +113,8 @@
 									Shipping:
 								</span>
 							</div>
-
-							<div class="size-209 p-r-18 p-r-0-sm w-full-ssm">
-								<p class="stext-111 cl6 p-t-2">
-									There are no shipping methods available. Please double check your address, or contact us if you need any help.
-								</p>
-								
-								<div class="p-t-15">
-									<span class="stext-112 cl8">
-										Calculate Shipping
-									</span>
-
-									<div class="rs1-select2 rs2-select2 bor8 bg0 m-b-12 m-t-9">
-										<select class="js-select2" name="time">
-											<option>Select a country...</option>
-											<option>USA</option>
-											<option>UK</option>
-										</select>
-										<div class="dropDownSelect2"></div>
-									</div>
-
-									<div class="bor8 bg0 m-b-12">
-										<input class="stext-111 cl8 plh3 size-111 p-lr-15" type="text" name="state" placeholder="State /  country">
-									</div>
-
-									<div class="bor8 bg0 m-b-22">
-										<input class="stext-111 cl8 plh3 size-111 p-lr-15" type="text" name="postcode" placeholder="Postcode / Zip">
-									</div>
-									
-									<div class="flex-w">
-										<div class="flex-c-m stext-101 cl2 size-115 bg8 bor13 hov-btn3 p-lr-15 trans-04 pointer">
-											Update Totals
-										</div>
-									</div>
-										
-								</div>
+							<div class="size-209">
+								<span id="shippingAmount" class="mtext-110 cl2">₹ 60.00</span>
 							</div>
 						</div>
 
@@ -155,120 +126,198 @@
 							</div>
 
 							<div class="size-209 p-t-1">
-								<span class="mtext-110 cl2">
-									$79.65
-								</span>
+								<span id="totalAmount" class="mtext-110 cl2">₹ 0.00</span>
 							</div>
 						</div>
 
-						<button class="flex-c-m stext-101 cl0 size-116 bg3 bor14 hov-btn3 p-lr-15 trans-04 pointer">
+						<a href="/checkoutPage" class="flex-c-m stext-101 cl0 size-116 bg3 bor14 hov-btn3 p-lr-15 trans-04 pointer">
 							Proceed to Checkout
-						</button>
+						</a>
 					</div>
 				</div>
 			</div>
 		</div>
-	</form>
 
 
-	<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+	<!-- <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script> -->
 
-	<script>
-		 function increaseQuantity(event) {
-        const productId = event.target.dataset.productId;
-        const inStock = parseInt(event.target.dataset.inStock);
-        const quantityElement = event.target.parentElement.querySelector('.num-product');
-        const totalElement = event.target.parentElement.parentElement.nextElementSibling;
-        const currentQuantity = parseInt(quantityElement.value);
-        let maxQuantity = inStock;
-        if (inStock > 6) {
-            maxQuantity = 5;
-        }
-
-        if (currentQuantity < maxQuantity) {
-            updateQuantity(productId, 1);
-            quantityElement.value = currentQuantity + 1;
-            const price = parseFloat(totalElement.dataset.price);
-            totalElement.textContent = `₹ ${(price * (currentQuantity + 1)).toFixed(2)}`;
-            updateSubtotal();
-        } else {
-            Swal.fire({
-                title: `Quantity cannot exceed ${maxQuantity}`,
-                showClass: {
-                    popup: `
-                        animate__animated
-                        animate__fadeInUp
-                        animate__faster
-                    `
-                },
-                hideClass: {
-                    popup: `
-                        animate__animated
-                        animate__fadeOutDown
-                        animate__faster
-                    `
-                }
-            });
-        }
-    }
-
-    function decreaseQuantity(event) {
-        const productId = event.target.dataset.productId;
-        const quantityElement = event.target.parentElement.querySelector('.num-product');
-        const totalElement = event.target.parentElement.parentElement.nextElementSibling;
-        const currentQuantity = parseInt(quantityElement.value);
-        if (currentQuantity > 1) {
-            updateQuantity(productId, -1);
-            quantityElement.value = currentQuantity - 1;
-            const price = parseFloat(totalElement.dataset.price);
-            totalElement.textContent = `₹ ${(price * (currentQuantity - 1)).toFixed(2)}`;
-            updateSubtotal();
-        } else {
-            Swal.fire({
-                title: "Quantity cannot be less than 1",
-                showClass: {
-                    popup: `
-                        animate__animated
-                        animate__fadeInUp
-                        animate__faster
-                    `
-                },
-                hideClass: {
-                    popup: `
-                        animate__animated
-                        animate__fadeOutDown
-                        animate__faster
-                    `
-                }
-            });
-        }
-    }
 	
+	<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+	
+	<script>
+		document.querySelectorAll('.decrease-quantity').forEach(button => {
+			button.addEventListener('click', decreaseQuantity);
+		});
+
+		document.querySelectorAll('.increase-quantity').forEach(button => {
+			button.addEventListener('click', increaseQuantity);
+		});
+
+		function decreaseQuantity(event) {
+			const productId = event.target.dataset.productId;
+			const quantity = document.getElementById("quantity"+productId)
+			const total = document.getElementById("total"+productId)
+			const price = document.getElementById("price"+productId).innerText
+			const totalNowString = document.getElementById("total"+productId).innerText
+
+			let to = totalNowString.match(/\d+/);
+			let tot = parseInt(to[0], 10);
+
+			let numbers = price.match(/\d+/);
+			let number = parseInt(numbers[0], 10); 
+
+			const currentQuantity = parseInt(event.target.nextElementSibling.innerText); 
+			if (currentQuantity > 1) {
+				updateQuantity(productId, -1);
+				quantity.innerHTML= currentQuantity-1
+				total.innerHTML= tot-number
+			}else{
+				Swal.fire({
+					title: "Quantity cannot be less than 1",
+					showClass: {
+						popup: `
+						animate__animated
+						animate__fadeInUp
+						animate__faster
+						`
+					},
+					hideClass: {
+						popup: `
+						animate__animated
+						animate__fadeOutDown
+						animate__faster
+						`
+					}
+				});
+			}
+		}
+
+		function increaseQuantity(event) {
+			const productId = event.target.dataset.productId;
+			const inStock = parseInt(event.target.dataset.inStock);
+			const quantity = document.getElementById("quantity"+productId)
+			const total = document.getElementById("total"+productId)
+			const price = document.getElementById("price"+productId).innerText
+			const totalNowString = document.getElementById("total"+productId).innerText
+			const currentQuantity = parseInt(event.target.previousElementSibling.innerText)
+
+			let to = totalNowString.match(/\d+/);
+			let tot = parseInt(to[0], 10);
+
+			let numbers = price.match(/\d+/);
+			let number = parseInt(numbers[0], 10);
+			let maxQuantity = inStock;
+			if(inStock > 6){
+				maxQuantity = 5
+			}
+
+			if (currentQuantity < maxQuantity ) {
+				updateQuantity(productId, 1);
+				quantity.innerHTML= currentQuantity+1
+				total.innerHTML= tot+number
+
+			} else {
+				Swal.fire({
+					title: `Quantity cannot exceed ${maxQuantity}`,
+					showClass: {
+						popup: `
+						animate__animated
+						animate__fadeInUp
+						animate__faster
+						`
+					},
+					hideClass: {
+						popup: `
+						animate__animated
+						animate__fadeOutDown
+						animate__faster
+						`
+					}
+				});
+			}
+		}
+
 		function updateQuantity(productId, change, stock) {
 			$.ajax({
-				url: `/updateQuantity?productId=${productId}&change=${change}`,
-				type: 'POST',
-				success: function (response) {
-					$('.total-section').load(location.href + ' .total-section');
-					console.log('Quantity updated successfully');
-				},
-				error: function (error) {
-					console.error('Error updating quantity:', error);
-					$('#quantityErrorMessage').text('Quantity error: ' + error.responseJSON.message);
-					$('#quantityErrorModal').modal('show');
-				}
+                url: `/updateQuantity?productId=${productId}&change=${change}`,
+                type: 'POST',
+				
+                success: function (response) {
+					console.log("localjfalj");
+                    // $('.cartTable').load(location.href + ' .cartTable')
+                    console.log('Quantity updated successfully');
+                },
+                error: function (error) {
+                    console.error('Error updating quantity:', error);
+                    $('#quantityErrorMessage').text('Quantity error: ' + error.responseJSON.message);
+                    $('#quantityErrorModal').modal('show');
+                }
+				
 			});
 		}
 
-	// 	function updateSubtotal() {
-    //     const totalElements = document.querySelectorAll('.column-5');
-    //     let subtotal = 0;
-    //     totalElements.forEach(element => {
-    //         subtotal += parseFloat(element.textContent.replace('₹ ', ''));
-    //     });
-    //     document.getElementById('subtotal').textContent = `₹ ${subtotal.toFixed(2)}`;
-    //     document.getElementById('total').textContent = `₹ ${subtotal.toFixed(2)}`;
-    // }
+		function removeFromCart(productId) {
+			$.ajax({
+                url: `/removeFromCart?productId=${productId}`,
+                type: 'GET',
+				
+                success: function (response) {
+						Swal.fire({
+							icon: 'success',
+							title: 'Product removed from cart successfully',
+							showConfirmButton: false,
+							timer: 1500
+				});
+
+					console.log("localjfalj");
+                    // $('.cartTable').load(location.href + ' .cartTable')
+                    console.log('Quantity updated successfully');
+					setTimeout(() => {
+						window.location.reload()
+					}, 1500);
+					
+                },
+                error: function (error) {
+                    console.error('Error updating quantity:', error);
+                    $('#quantityErrorMessage').text('Quantity error: ' + error.responseJSON.message);
+                    $('#quantityErrorModal').modal('show');
+                }
+				
+			});
+		}
+
+
+
+		// Calculate and update subtotal
+	function updateSubtotal() {
+		let subtotal = 0;
+		
+		document.querySelectorAll('.table_row').forEach(row => {
+			const price = parseFloat(row.querySelector('.column-3').innerText.replace('₹', ''));
+			const quantity = parseInt(row.querySelector('.quantity').innerText);
+			subtotal += price * quantity;
+		});
+		
+		// Update subtotal display
+		document.getElementById('subtotalAmount').innerText = '₹ ' + subtotal.toFixed(2);
+		
+		// Update total amount by adding shipping
+		const shippingAmount = parseFloat(document.getElementById('shippingAmount').innerText.replace('₹', ''));
+		const total = subtotal + shippingAmount;
+		
+		// Update total amount display
+		document.getElementById('totalAmount').innerText = '₹ ' + total.toFixed(2);
+	}
+
+	// Call updateSubtotal function on window load and whenever quantity changes
+	window.onload = updateSubtotal;
+	document.querySelectorAll('.decrease-quantity, .increase-quantity').forEach(button => {
+		button.addEventListener('click', function() {
+			updateSubtotal();
+		});
+	});
 
 
 	</script>

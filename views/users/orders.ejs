@@ -1,0 +1,285 @@
+<%- include('../layouts/userLayout/headerCart.ejs') %>
+
+<link rel="stylesheet" type="text/css" href="css/theme.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+<br>
+<br>
+<br>
+<div class="row justify-content-center">
+  <div class="col-lg-10">
+    <div class="card">
+      <div class="card-header">
+        <div class="row justify-content-between">
+          <div class="col-md-auto">
+            <h5 class="mb-3 mb-md-0">Order Details</h5>
+          </div>
+          <div class="col-md-auto"><a class="btn btn-sm btn-outline-secondary border-300 me-2 shadow-none" href="/index.html"> <span class="fas fa-chevron-left me-1" data-fa-transform="shrink-4"></span>Continue Shopping</a></div>
+        </div>
+      </div>
+      <div class="card-body p-0">
+        <div class="row gx-1 mx-0 bg-200 text-900 fs-10 fw-semi-bold">
+          <div class="col-1 col-md-2 py-2 px-1"></div>
+          <div class="col-1 col-md-2 py-2 px-1">Name</div>
+          <div class="col-3 col-md-2 py-2 px-1">Order Date</div>
+          <div class="col-2 col-md-2 py-2 px-1">Payment</div>
+          <div class="col-2 col-md-2 py-2 px-1">Status</div>
+          <div class="col-1 col-md-1 py-2 px-1 text-end">Action</div>
+        </div>
+
+        <!-- Iterate over each order -->
+        <% orders.forEach(order => { %> 
+          <% order.orderItems.forEach(item => { %>
+            <div class="row gx-1 mx-0 align-items-center border-bottom border-200">
+              <div class="col-4 py-3 px-1">
+                <div class="d-flex align-items-center">
+                  <a href=""><img class="img-fluid rounded-1 me-3 d-none d-md-block" src="<%= item.image[0] %>" alt="" width="60" /></a>
+                  <div class="flex-1 pt-3 pb-3">
+                    <h5 class="fs-9"><a class="text-900" href="/orderDetails?orderId=<%= order._id %>"><%= item.productName %></a></h5>
+                  </div>
+                </div>
+              </div>
+              <div class="col-2 py-3 px-1"><%= new Date(order.orderDate).toDateString() %></div>
+              <div class="col-2 py-3 px-1"><%= order.paymentMethod %></div>
+              <div class="col-2 py-3 px-1"><%= order.orderStatus %></div>
+              <div class="col-1 py-3 px-1 text-end">
+                <% if (order.orderStatus === 'Order confirmed') { %>
+                  <button type="button" class="btn btn-sm btn-outline-danger" onclick="cancelOrder('<%= order._id %>')">Cancel</button>
+                <% } else if (order.orderStatus === 'Delivered') { %>
+                  <button type="button" class="btn btn-sm btn-outline-warning" onclick="returnOrder('<%= order._id %>')">Return</button>
+                <% } else if (order.orderStatus === 'pending') { %>
+                  <button type="button" class="btn btn-sm btn-outline-primary payAgainButton" data-order-id="<%= order._id %>">Pay Again</button>
+                <% } %>
+              </div>
+            </div>
+          <% }); %>
+        <% }); %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<br>
+<br>
+<br>
+<br>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
+
+
+<script>
+  
+  // Script to update the order status display
+  document.addEventListener("DOMContentLoaded", function() {
+    const statuses = document.querySelectorAll('.status');
+
+    statuses.forEach((statusElement) => {
+      const status = statusElement.getAttribute('data-status');
+      let iconHTML = '<i class="fa-solid fa-circle-dot"></i> ';
+
+      switch(status) {
+        case 'order confirmed':
+          statusElement.innerHTML = iconHTML + 'On Delivery';
+          statusElement.style.color = 'blue';
+          break;
+        case 'cancelled':
+          statusElement.innerHTML = iconHTML + 'Order Cancelled';
+          statusElement.style.color = 'red';
+          break;
+        case 'delivered':
+        case 'completed':
+          statusElement.innerHTML = iconHTML + 'Product Delivered';
+          statusElement.style.color = 'green';
+          break;
+        case 'returned':
+          statusElement.innerHTML = iconHTML + 'The Product Returned';
+          statusElement.style.color = 'red';
+          break;
+        case 'Requested for Return':
+          statusElement.innerHTML = iconHTML + 'Requested for Return';
+          statusElement.style.color = 'red';
+          break;
+        case 'pending':
+          statusElement.innerHTML = iconHTML + 'Payment Incomplete';
+          statusElement.style.color = 'red';
+          break;
+      }
+    });
+  });
+
+  // Cancel order function
+  function cancelOrder(orderId) {
+    Swal.fire({
+      title: "Are you sure?",
+      text: "You won't be able to revert this!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes, Cancel Order",
+      cancelButtonText: "No, cancel!",
+      reverseButtons: true
+    }).then((result) => {
+      if (result.isConfirmed) {
+        fetch(`/cancelOrder?orderId=${orderId}`, {
+          method: 'GET'
+        })
+        .then(response => {
+          if (response.ok) {
+            Swal.fire({
+              title: "Order Cancelled",
+              text: "The Order has been Cancelled.",
+              icon: "success"
+            }).then(() => {
+              window.location.reload();
+            });
+          } else {
+            Swal.fire({
+              title: "Error",
+              text: "An error occurred while Cancelling Order.",
+              icon: "error"
+            });
+          }
+        })
+        .catch(error => {
+          console.error("Error:", error);
+          Swal.fire({
+            title: "Error",
+            text: "An error occurred while Cancelling Order.",
+            icon: "error"
+          });
+        });
+      }
+    });
+  }
+
+  // Return order function
+  function returnOrder(orderId) {
+    Swal.fire({
+      title: 'Return Order',
+      input: 'textarea',
+      inputPlaceholder: 'Type your reason here...',
+      inputAttributes: {
+        'aria-label': 'Type your reason here'
+      },
+      showCancelButton: true,
+      confirmButtonText: 'Submit',
+      cancelButtonText: 'Cancel',
+      inputValidator: (value) => {
+        if (!value) {
+          return 'You need to write something!';
+        }
+      }
+    }).then((result) => {
+      if (result.isConfirmed && result.value) {
+        fetch('/returnOrder', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            orderId: orderId,
+            reason: result.value
+          })
+        })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Network response was not ok');
+          }
+          return response.json();
+        })
+        .then(data => {
+          Swal.fire('Submitted!', 'Your return request has been submitted.', 'success').then(() => {
+            window.location.reload();
+          });
+        })
+        .catch(error => {
+          console.error('Error returning the order:', error);
+          Swal.fire('Failed!', 'Your return request could not be processed.', 'error');
+        });
+      }
+    });
+  }
+
+  // Continue order function
+  document.addEventListener("DOMContentLoaded", function() {
+    var payAgainButtons = document.querySelectorAll('.payAgainButton');
+    payAgainButtons.forEach(function(button) {
+      button.addEventListener('click', function() {
+        var orderId = this.getAttribute('data-order-id');
+        initiatePayment(orderId);
+      });
+    });
+  });
+
+  function initiatePayment(orderId) {
+    fetch('/getPaymentDetails', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ orderId: orderId })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        openRazorpay(data);
+      } else {
+        Swal.fire('Error', 'Failed to fetch payment details', 'error');
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      Swal.fire('Error', 'Network Error. Try again.', 'error');
+    });
+  }
+
+  function openRazorpay(data) {
+    var options = {
+      "key": data.key,
+      "amount": data.amount,
+      "currency": "INR",
+      "name": "Your App Name",
+      "description": "Test Transaction",
+      "image": "https://example.com/your_logo",
+      "order_id": data.orderId,
+      "handler": function (response) {
+        fetch('/paymentSuccess', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(response)
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            Swal.fire('Success', 'Payment Successful!', 'success').then(() => {
+              window.location.reload();
+            });
+          } else {
+            Swal.fire('Error', 'Payment Failed!', 'error');
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          Swal.fire('Error', 'Payment Failed!', 'error');
+        });
+      },
+      "prefill": {
+        "name": "Your Name",
+        "email": "youremail@example.com",
+        "contact": "9999999999"
+      },
+      "notes": {
+        "address": "Your Address"
+      },
+      "theme": {
+        "color": "#3399cc"
+      }
+    };
+    var rzp1 = new Razorpay(options);
+    rzp1.open();
+  }
+</script>
+
+<%- include('../layouts/userLayout/footerCart.ejs') %>
+
+

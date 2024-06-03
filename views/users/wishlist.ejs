@@ -1,0 +1,128 @@
+<%- include('../layouts/userLayout/headerCart.ejs')%>		
+
+<!-- breadcrumb -->
+<div class="container">
+	<div class="bread-crumb flex-w p-l-25 p-r-15 p-t-30 p-lr-0-lg">
+		<a href="index.html" class="stext-109 cl8 hov-cl1 trans-04">
+			Home
+			<i class="fa fa-angle-right m-l-9 m-r-10" aria-hidden="true"></i>
+		</a>
+
+		<span class="stext-109 cl4">
+			Wishlist
+		</span>
+	</div>
+</div>
+
+<!-- Wishlist -->
+<div class="container">
+	<div class="row">
+		<div class="col-lg-10 col-xl-7 m-lr-auto m-b-50">
+			<div class="m-l-25 m-r--38 m-lr-0-xl">
+				<div class="wrap-table-shopping-cart">
+					<table class="table-shopping-cart">
+						<tr class="table_head">
+							<th class="column-1">Product</th>
+							<th class="column-2">Name</th>
+							<th class="column-3">Price</th>
+							<th class="column-3 p-l-40">Actions</th>
+						</tr>
+
+						<% if (userWishlist && userWishlist.length > 0) { %>
+							<% userWishlist.forEach(wishlstItems => { %>
+								<tr class="table_row">
+									<td class="column-1">
+										<div class="how-itemcart1" onclick="removeFromWishlist('<%= wishlstItems.productDetails._id %>')">
+											<img src="<%= wishlstItems.productDetails.image[0] %>" alt="Product Image">
+										</div>
+									</td>
+									<td class="column-2"><%= wishlstItems.productDetails.productName %></td>
+									<td class="column-3">₹ <%= wishlstItems.productDetails.price %></td>
+									<td class="column-4">
+										<button class="btn btn-success" style="margin-right: 30px;" onclick="addToCart('<%= wishlstItems.productDetails._id %>')">Add to Cart</button>
+									</td>
+								</tr>
+							<% }); %>
+						<% } else { %>
+							<!-- Handle case where wishlist is empty -->
+							<tr>
+								<td colspan="4" class="text-center">Your Wishlist is empty</td>
+							</tr>
+						<% } %>
+					</table>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+<script>
+async function removeFromWishlist(productId) {
+    try {
+        const response = await fetch(`/removeFromWishlist?productId=${productId}`, {
+            method: 'POST' 
+        });
+        const result = await response.json();
+        if (response.ok) {
+            Swal.fire({
+                icon: 'success',
+                title: result.message,
+                showConfirmButton: false,
+                timer: 1500
+            });
+            setTimeout(() => {
+                window.location.reload();
+            }, 1500);
+        } else if (response.status === 401) {
+            window.location.href = result.redirectUrl;
+        } else {
+            throw new Error(result.message);
+        }
+    } catch (error) {
+        console.error('Error updating wishlist:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Failed to update wishlist',
+            showConfirmButton: false,
+            timer: 1500
+        });
+    }
+}
+
+async function addToCart(productId) {
+    try {
+        const response = await fetch(`/add-to-cart`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ productId: productId })
+        });
+        const result = await response.json();
+        if (response.ok) {
+            Swal.fire({
+                icon: 'success',
+                title: 'Product added to cart successfully',
+                showConfirmButton: false,
+                timer: 1500
+            });
+        } else {
+            throw new Error(result.message);
+        }
+    } catch (error) {
+        console.error('Error adding product to cart:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Failed to add product to cart',
+            showConfirmButton: false,
+            timer: 1500
+        });
+    }
+}
+
+</script>
+
+<%- include('../layouts/userLayout/footerCart.ejs')%>

@@ -392,10 +392,10 @@
 					<!-- Add to wishlist or other actions -->
                     <div class="block2-txt-child2 flex-r p-t-3">
 						
-						<a href="#" class="btn-addwish-b2 dis-block pos-relative js-addwish-b2">
-							<img class="icon-heart1 dis-block trans-04" src="images/icons/icon-heart-01.png" alt="ICON">
-							<img class="icon-heart2 dis-block trans-04 ab-t-l" src="images/icons/icon-heart-02.png" alt="ICON">
-						</a>
+						<a href="#" class="btn-addwish-b2 dis-block pos-relative js-addwish-b2" onclick="addToWishlist('<%= product._id %>')">
+                            <img class="icon-heart1 dis-block trans-04" src="images/icons/icon-heart-01.png" alt="ICON">
+                            <img class="icon-heart2 dis-block trans-04 ab-t-l" src="images/icons/icon-heart-02.png" alt="ICON">
+                        </a>
                         
                     </div>
                 </div>
@@ -415,6 +415,38 @@
 			</div>
 		</div>
 	</section>
+
+
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    async function addToWishlist(productId) {
+        try {
+            const response = await axios.post('/addToWishlist', { productId });
+
+            if (response.status === 200) {
+                Swal.fire({
+                    icon: 'success',
+                    title: response.data.message,
+                    showConfirmButton: false,
+                    timer: 1500
+                });
+            } else if (response.status === 401) {
+                window.location.href = response.data.redirectUrl;
+            } else {
+                throw new Error(response.data.message);
+            }
+        } catch (error) {
+            console.error('Error adding product to wishlist:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Failed to add product to wishlist',
+                showConfirmButton: false,
+                timer: 1500
+            });
+        }
+    }
+</script>
 
 
 <%- include('../layouts/userLayout/footerHome.ejs')%>

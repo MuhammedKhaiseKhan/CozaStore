@@ -1,6 +1,5 @@
 <%- include('../layouts/adminLayout/header.ejs')%>
 
-
 <div class="container-xxl position-relative bg-white d-flex p-0">
     <!-- Spinner Start -->
     <div id="spinner" class="show bg-white position-fixed translate-middle w-100 vh-100 top-50 start-50 d-flex align-items-center justify-content-center">
@@ -9,7 +8,6 @@
         </div>
     </div>
     <!-- Spinner End -->
-
 
     <!-- Sidebar Start -->
     <div class="sidebar pe-4 pb-3">
@@ -30,7 +28,7 @@
             <div class="navbar-nav w-100">
                 <a href="/admin/index.html" class="nav-item nav-link"><i class="fa fa-tachometer-alt me-2"></i>Dashboard</a>
                 <div class="nav-item dropdown">
-                    <a href="#"  class="nav-link dropdown-toggle " data-bs-toggle="dropdown" ><i class="fa fa-user me-2"></i>Manage User</a>
+                    <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown"><i class="fa fa-user me-2"></i>Manage User</a>
                     <div class="dropdown-menu bg-transparent border-0">
                         <a href="/admin/userManagement" class="dropdown-item active">All Users</a>
                         <a href="" class="dropdown-item">Blocked Users</a>
@@ -38,7 +36,7 @@
                 </div>
                 <a href="/admin/category" class="nav-item nav-link"><i class="fa fa-th me-2"></i>Manage Category</a>
                 <a href="/admin/product" class="nav-item nav-link active"><i class="fa fa-keyboard me-2"></i>Manage Products</a>
-                <a href="table.html" class="nav-item nav-link"><i class="fa fa-table me-2"></i>Tables</a>
+                <a href="orderManagement" class="nav-item nav-link"><i class="fa fa-table me-2"></i>Manage Orders</a>
                 <a href="chart.html" class="nav-item nav-link"><i class="fa fa-chart-bar me-2"></i>Charts</a>
                 <div class="nav-item dropdown">
                     <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown"><i class="far fa-file-alt me-2"></i>Pages</a>
@@ -53,7 +51,6 @@
         </nav>
     </div>
     <!-- Sidebar End -->
-
 
     <!-- Content Start -->
     <div class="content">
@@ -86,122 +83,125 @@
         <!-- Navbar End -->
 
         <!-- Edit Product Form Start -->
-    <div id="editProductForm" class="col-12">
-        <div class="bg-light rounded p-4">
-            <h2 class="mb-4 text-center">Edit Product</h2>
-            <% if (typeof message !== 'undefined') { %>
-            <div class="alert alert-danger" role="alert">
-                <%= message %>
-            </div>
-            <% } %>
+        <div id="editProductForm" class="col-12">
+            <div class="bg-light rounded p-4">
+                <h2 class="mb-4 text-center">Edit Product</h2>
+                <% if (typeof message !== 'undefined') { %>
+                <div class="alert alert-danger" role="alert">
+                    <%= message %>
+                </div>
+                <% } %>
 
-            <form enctype="multipart/form-data" id="product-form" method="POST" action="/admin/update-product">
-                <!-- Product Name and Brand Name -->
-                <div class="row mb-3">
-                    <!-- Product Name -->
-                    <div class="col-md-6">
-                        <label for="productName" class="form-label">Product Name</label>
-                        <input type="text" class="form-control" id="productName" name="productName" value="<%= product.productName %>" >
+                <form enctype="multipart/form-data" id="product-form" method="POST" action="/admin/update-product">
+                    <!-- Product Name and Brand Name -->
+                    <div class="row mb-3">
+                        <!-- Product Name -->
+                        <div class="col-md-6">
+                            <label for="productName" class="form-label">Product Name</label>
+                            <input type="text" class="form-control" id="productName" name="productName" value="<%= product.productName %>" >
+                        </div>
+                        <!-- Brand Name -->
+                        <div class="col-md-6">
+                            <label for="brandName" class="form-label">Brand Name</label>
+                            <input type="text" class="form-control" id="brandName" name="brandName" value="<%= product.brand %>" >
+                        </div>
                     </div>
-                    <!-- Brand Name -->
-                    <div class="col-md-6">
-                        <label for="brandName" class="form-label">Brand Name</label>
-                        <input type="text" class="form-control" id="brandName" name="brandName" value="<%= product.brand %>" >
+                
+                    <!-- Size and Category -->
+                    <div class="row mb-3">
+                        <!-- Size -->
+                        <div class="col-md-6">
+                            <label for="size" class="form-label">Size</label>
+                            <input type="text" class="form-control" id="size" name="size" value="<%= product.size %>" >
+                        </div>
+                        <!-- Category -->
+                        <div class="col-md-6">
+                            <label for="category" class="form-label">Category</label>
+                            <!-- <select class="form-select" id="category" name="category" >
+                                <% if (typeof category !== 'undefined') { %>
+                                    <option value="<%= product._id %>"> <%= product.category.name %> </option>
+                                    <% category.forEach(category => { %>
+                                        <option value="<%= category._id %>"> <%= category.name %> </option>
+                                    <% }); %>
+                                <% } %>
+                            </select> -->
+                            <input type="text" class="form-control" value="<%= product.category.name %>" readonly >
+                        </div>
                     </div>
-                </div>
-            
-                <!-- Size and Category -->
-                <div class="row mb-3">
-                    <!-- Size -->
-                    <div class="col-md-6">
-                        <label for="size" class="form-label">Size</label>
-                        <input type="text" class="form-control" id="size" name="size" value="<%= product.size %>" >
+                
+                    <!-- In Stock, Original Price, and Discount Price -->
+                    <div class="row mb-3">
+                        <!-- In Stock -->
+                        <div class="col-md-4">
+                            <label for="inStock" class="form-label">In Stock</label>
+                            <input type="number" class="form-control" id="inStock" name="inStock" value="<%= product.inStock %>" >
+                        </div>
+                        <!-- Original Price -->
+                        <div class="col-md-4">
+                            <label for="originalPrice" class="form-label">Original Price</label>
+                            <input type="number" class="form-control" id="originalPrice" name="originalPrice" value="<%= product.price %>" >
+                        </div>
+                        <!-- Discount Price -->
+                        <div class="col-md-4">
+                            <label for="discountPrice" class="form-label">Discount Price</label>
+                            <input type="number" class="form-control" id="discountPrice" name="discountPrice" value="<%= product.discountPrice %>" onkeyup="calculateDiscount()">
+                        </div>
                     </div>
-                    <!-- Category -->
-                    <div class="col-md-6">
-                        <label for="category" class="form-label">Category</label>
-                        <!-- <select class="form-select" id="category" name="category" >
-                            <% if (typeof category !== 'undefined') { %>
-                                <option value="<%= product._id %>"> <%= product.category.name %> </option>
-                                <% category.forEach(category => { %>
-                                    <option value="<%= category._id %>"> <%= category.name %> </option>
-                                <% }); %>
-                            <% } %>
-                        </select> -->
-                        <input type="text" class="form-control"   value="<%= product.category.name %>" readonly >
+                
+                    <!-- Discount, Description, and Color -->
+                    <div class="row mb-3">
+                        <!-- Color -->
+                        <div class="col-md-4">
+                            <label for="color" class="form-label">Color</label>
+                            <input type="text" class="form-control" id="color" name="color" value="<%= product.color %>" >
+                        </div>
+                
+                        <!-- Discount -->
+                        <div class="col-md-4">
+                            <label for="discount" class="form-label">Discount(%)</label>
+                            <input type="number" class="form-control" id="discount" name="discount" value="<%= product.discount %>" readonly>
+                        </div>
+                
+                        <!-- Description -->
+                        <div class="col-md-4">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea class="form-control" id="description" name="description" rows="3" required><%= product.description %></textarea>
+                        </div>
                     </div>
-                </div>
-            
-                <!-- In Stock, Original Price, and Discount Price -->
-                <div class="row mb-3">
-                    <!-- In Stock -->
-                    <div class="col-md-4">
-                        <label for="inStock" class="form-label">In Stock</label>
-                        <input type="number" class="form-control" id="inStock" name="inStock" value="<%= product.inStock %>" >
+                
+                    <!-- Image Upload -->
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label for="image1" class="form-label">Image 1</label>
+                            <input class="form-control" type="file" id="image1" name="image1" onchange="previewImage(this, 'preview1')">
+                            <img id="preview1" src="<%= product.image[0] %>" alt="Image 1 Preview" style="max-width: 100%; margin-top: 10px;">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="image2" class="form-label">Image 2</label>
+                            <input class="form-control" type="file" id="image2" name="image2" onchange="previewImage(this, 'preview2')">
+                            <img id="preview2" src="<%= product.image[1] %>" alt="Image 2 Preview" style="max-width: 100%; margin-top: 10px;">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="image3" class="form-label">Image 3</label>
+                            <input class="form-control" type="file" id="image3" name="image3" onchange="previewImage(this, 'preview3')">
+                            <img id="preview3" src="<%= product.image[2] %>" alt="Image 3 Preview" style="max-width: 100%; margin-top: 10px;">
+                        </div>
                     </div>
-                    <!-- Original Price -->
-                    <div class="col-md-4">
-                        <label for="originalPrice" class="form-label">Original Price</label>
-                        <input type="number" class="form-control" id="originalPrice" name="originalPrice" value="<%= product.price %>" >
+                
+                    <!-- Submit and Cancel Buttons -->
+                    <div class="row mb-3">
+                        <div class="col-md-12 text-center ">
+                            <button type="submit" id="update-btn" class="btn btn-primary btn-lg">Update Product</button>
+                        </div>
+                
+                        <div class="col-md-12 text-center mt-3">
+                            <a href="/admin/product" class="btn btn-secondary btn-lg">Cancel</a>
+                        </div>
                     </div>
-                    <!-- Discount Price -->
-                    <div class="col-md-4">
-                        <label for="discountPrice" class="form-label">Discount Price</label>
-                        <input type="number" class="form-control" id="discountPrice" name="discountPrice" value="<%= product.discountPrice %>" onkeyup="calculateDiscount()">
-                    </div>
-                </div>
-            
-                <!-- Discount, Description, and Color -->
-                <div class="row mb-3">
-                    <!-- Color -->
-                    <div class="col-md-4">
-                        <label for="color" class="form-label">Color</label>
-                        <input type="text" class="form-control" id="color" name="color" value="<%= product.color %>" >
-                    </div>
-            
-                    <!-- Discount -->
-                    <div class="col-md-4">
-                        <label for="discount" class="form-label">Discount(%)</label>
-                        <input type="number" class="form-control" id="discount" name="discount" value="<%= product.discount %>" readonly>
-                    </div>
-            
-                    <!-- Description -->
-                    <div class="col-md-4">
-                        <label for="description" class="form-label">Description</label>
-                        <textarea class="form-control" id="description" name="description" rows="3" required><%= product.description %></textarea>
-                    </div>
-                </div>
-            
-                <!-- Image Upload -->
-                <div class="row mb-3">
-                    <div class="col-md-4">
-                        <label for="image1" class="form-label">Image 1</label>
-                        <input class="form-control" type="file" id="image1" name="image1">
-                    </div>
-                    <div class="col-md-4">
-                        <label for="image2" class="form-label">Image 2</label>
-                        <input class="form-control" type="file" id="image2" name="image2">
-                    </div>
-                    <div class="col-md-4">
-                        <label for="image3" class="form-label">Image 3</label>
-                        <input class="form-control" type="file" id="image3" name="image3">
-                    </div>
-                </div>
-            
-                <!-- Submit and Cancel Buttons -->
-                <div class="row mb-3">
-                    <div class="col-md-12 text-center ">
-                        <button type="submit" id="update-btn" class="btn btn-primary btn-lg">Update Product</button>
-                    </div>
-            
-                    <div class="col-md-12 text-center mt-3">
-                        <a href="/admin/product" class="btn btn-secondary btn-lg">Cancel</a>
-                    </div>
-                </div>
-            </form>
+                </form>
+            </div>
         </div>
-    </div>
-    <!-- Edit Product Form End -->
+        <!-- Edit Product Form End -->
 
         <!-- Footer Start -->
         <div class="container-fluid pt-4 px-4">
@@ -231,7 +231,6 @@
 <!-- Template Javascript -->
 <script src="/admin/js/main.js"></script>
 
-
 <script>
     function calculateDiscount() {
         var OriginalPriceInput = document.getElementById('originalPrice').value;
@@ -240,17 +239,29 @@
         var discountPrice = parseFloat(discountPriceInput);
         var OriginalPrice = parseFloat(OriginalPriceInput);
         
-        
         if (!isNaN(discountPrice) && !isNaN(OriginalPrice)) {
             var discountPercentage = (discountPrice / OriginalPrice) * 100;
             console.log(discountPercentage);
             document.getElementById('discount').value = parseInt(discountPercentage);
         }
     }
-</script>
 
+    function previewImage(input, previewId) {
+        const file = input.files[0];
+        const preview = document.getElementById(previewId);
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            preview.src = e.target.result;
+        };
+        
+        if (file) {
+            reader.readAsDataURL(file);
+        } else {
+            preview.src = '';
+        }
+    }
 
-<script>
     document.getElementById('product-form').addEventListener('submit', async (event) => {
         event.preventDefault();
 
@@ -276,6 +287,5 @@
         }
     });
 </script>
-
 
 <%- include('../layouts/adminLayout/footer.ejs')%>
