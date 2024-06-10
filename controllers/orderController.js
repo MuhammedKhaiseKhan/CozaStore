@@ -37,9 +37,17 @@ const placeOrder = async (req, res) => {
         });
 
         const shippingCost = 60; // Assuming a fixed shipping cost
-        const couponDiscount = 55; // Assuming a fixed coupon discount
-        const total = subtotal + shippingCost - couponDiscount;
 
+        // Retrieve coupon discount from session
+        const coupon = req.session.coupon;
+        let couponDiscount = 0;
+        if (coupon) {
+            const discountAmount = (subtotal * coupon.discountPercentage) / 100;
+            couponDiscount = Math.min(discountAmount, coupon.maxRedeemableAmount);
+        }
+
+        const total = subtotal + shippingCost - couponDiscount;
+        
         const orderItems = cartItems.map(item => ({
             productId: item.productId._id,
             productName: item.productId.productName,
@@ -60,6 +68,7 @@ const placeOrder = async (req, res) => {
             address: shippingAddress,
             paymentMethod: paymentMethod,
             totalAmount: total,
+            couponId: coupon ? coupon.id : null, // Add coupon ID to the order
         });
 
         await order.save();
@@ -103,6 +112,95 @@ const placeOrder = async (req, res) => {
         res.status(500).json({ success: false, message: 'Failed to place order. Please try again later.' });
     }
 };
+
+
+
+
+// const placeOrder = async (req, res) => {
+//     try {
+//         const userId = req.session.user_id;
+
+//         // Retrieve the user's cart items
+//         const cart = await Cart.findOne({ userId: userId }).populate('cartItems.productId');
+//         const cartItems = cart.cartItems;
+
+//         // Get the selected address for the order
+//         const { addressId, paymentMethod } = req.body;
+//         const address = await Address.findOne({ user_id: userId, 'address._id': addressId });
+//         const shippingAddress = address.address.find(item => item._id.toString() === addressId);
+
+//         let subtotal = 0;
+//         cartItems.forEach(item => {
+//             subtotal += item.productId.price * item.quantity;
+//         });
+
+//         const shippingCost = 60; // Assuming a fixed shipping cost
+//         const couponDiscount = 55; // Assuming a fixed coupon discount
+//         const total = subtotal + shippingCost - couponDiscount;
+
+//         const orderItems = cartItems.map(item => ({
+//             productId: item.productId._id,
+//             productName: item.productId.productName,
+//             quantity: item.quantity,
+//             brand: item.productId.brand,
+//             category: item.productId.category,
+//             description: item.productId.description,
+//             price: item.productId.price,
+//             discountPrice: item.productId.discountPrice,
+//             discount: item.productId.discount,
+//             image: item.productId.image
+//         }));
+
+//         // Save the order details to your database
+//         const order = new Order({
+//             userId: userId,
+//             orderItems: orderItems,
+//             address: shippingAddress,
+//             paymentMethod: paymentMethod,
+//             totalAmount: total,
+//         });
+
+//         await order.save();
+
+//         // Decrease stock for each product in the order
+//         for (const item of cartItems) {
+//             await Product.findByIdAndUpdate(item.productId._id, { $inc: { inStock: -parseInt(item.quantity) } }, { new: true });
+//         }
+
+//         if (paymentMethod === 'OnlinePayment') {
+//             // If online payment method, initiate Razorpay checkout
+//             const options = {
+//                 amount: total * 100, // Amount in paisa
+//                 currency: 'INR',
+//                 receipt: order._id.toString()
+//             };
+
+//             razorpayInstance.orders.create(options, (err, razorpayOrder) => {
+//                 if (err) {
+//                     console.log(err);
+//                     return res.status(500).json({ success: false, message: 'Failed to initiate payment. Please try again later.' });
+//                 }
+//                 res.status(200).json({
+//                     success: true,
+//                     message: 'Order placed successfully!',
+//                     orderId: order._id,
+//                     razorpayOrderId: razorpayOrder.id,
+//                     key_id: process.env.RAZORPAY_KEY_ID,
+//                     amount: options.amount
+//                 });
+//             });
+//         } else {
+//             // Update order status
+//             order.orderStatus = 'Order confirmed';
+//             await order.save();
+//             // If cash on delivery, respond with success message
+//             res.status(200).json({ success: true, message: 'Order placed successfully!', orderId: order._id });
+//         }
+//     } catch (error) {
+//         console.log(error.message);
+//         res.status(500).json({ success: false, message: 'Failed to place order. Please try again later.' });
+//     }
+// };
 
 
 // Payment verification  
@@ -165,15 +263,26 @@ const orderDetails = async (req, res) => {
 const orders = async (req, res) => {
     try {
         const userId = req.session.user_id;
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const skip = (page - 1) * limit;
 
-        const userOrders = await Order.find({ userId: userId }).sort({ orderDate: -1 }).populate('orderItems.productId');
+        const totalOrders = await Order.countDocuments({ userId: userId });
+        const totalPages = Math.ceil(totalOrders / limit);
 
-        res.render('orders', { orders: userOrders });
+        const userOrders = await Order.find({ userId: userId })
+            .sort({ orderDate: -1 })
+            .skip(skip)
+            .limit(limit)
+            .populate('orderItems.productId');
+
+        res.render('orders', { orders: userOrders, currentPage: page, totalPages: totalPages, limit: limit });
     } catch (error) {
         console.error(error.message);
         res.status(500).send('Internal Server Error');
     }
 };
+
 
 // cancelOrder
 
@@ -322,13 +431,41 @@ const cancellOrder = async (req, res, next) => {
 
 const orderManagement = async (req, res) => {
     try {
-        const allOrders = await Order.find().sort({ orderDate: -1 }).populate('orderItems.productId');
-        res.render('orderManagement', { orders: allOrders });
+        const page = parseInt(req.query.page) || 1;
+        const limit = 10;  // Number of orders per page
+        const skip = (page - 1) * limit;
+
+        const totalOrders = await Order.countDocuments();
+        const totalPages = Math.ceil(totalOrders / limit);
+
+        const allOrders = await Order.find()
+            .sort({ orderDate: -1 })
+            .populate('orderItems.productId')
+            .skip(skip)
+            .limit(limit);
+
+        res.render('orderManagement', {
+            orders: allOrders,
+            currentPage: page,
+            totalPages: totalPages
+        });
     } catch (error) {
         console.error(error.message);
         res.status(500).send('Internal Server Error');
     }
 };
+
+
+
+// const orderManagement = async (req, res) => {
+//     try {
+//         const allOrders = await Order.find().sort({ orderDate: -1 }).populate('orderItems.productId');
+//         res.render('orderManagement', { orders: allOrders });
+//     } catch (error) {
+//         console.error(error.message);
+//         res.status(500).send('Internal Server Error');
+//     }
+// };
 
 const updateOrderStatus =  async (req, res) => {
     const { orderId, status } = req.body;
@@ -387,46 +524,23 @@ const approveReturn = async (req, res, next) => {
     }
 };
 
-
-// const approveReturn = async (req, res, next) => {
-//     try {
-//         const orderId = req.body.orderId; // Changed to req.body.orderId to match fetch request payload
-
-//         if (!mongoose.Types.ObjectId.isValid(orderId)) {
-//             return res.status(400).send({ message: "Invalid order ID." });
-//         }
-
-//         const order = await Order.findByIdAndUpdate(orderId, { $set: { orderStatus: 'returned' } }, { new: true });
-
-//         if (!order) {
-//             return res.status(404).send({ message: "Order not found." });
-//         }
-
-//         res.status(200).send({ message: "Return approved successfully.", order: order });
-//     } catch (error) {
-//         console.error('Error approving return:', error.message);
-//         res.status(500).send({ message: 'An error occurred while approving return.' });
-//         next(error);
-//     }
-// };
-
 const loadWallet = async (req, res) => {
     try {
         const userId = req.session.user_id; 
 
-        // Find the user by ID
+        
         const user = await User.findById(userId);
         if (!user) {
             return res.status(404).send('User not found');
         }
 
-        // Find the wallet associated with the user
+        
         const wallet = await Wallet.findOne({ userId: user._id });
         if (!wallet) {
             return res.status(404).send('Wallet not found');
         }
 
-        // Render the wallet page with user and wallet data
+        
         res.render('wallet', { user, wallet });
     } catch (error) {
         console.error('Error loading wallet:', error);

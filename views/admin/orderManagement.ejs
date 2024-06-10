@@ -40,7 +40,7 @@
                 <a href="category" class="nav-item nav-link"><i class="fa fa-th me-2"></i>Manage Category</a>
                 <a href="product" class="nav-item nav-link"><i class="fa fa-keyboard me-2"></i>Manage Products</a>
                 <a href="orderManagement" class="nav-item nav-link active"><i class="fa fa-table me-2"></i>Manage Orders</a>
-                <a href="chart.html" class="nav-item nav-link"><i class="fa fa-chart-bar me-2"></i>Charts</a>
+                <a href="couponManagement" class="nav-item nav-link"><i class="fa-solid fa-ticket"></i>Manage Coupon</a>
                 <div class="nav-item dropdown">
                     <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown"><i class="far fa-file-alt me-2"></i>Pages</a>
                     <div class="dropdown-menu bg-transparent border-0">
@@ -111,7 +111,7 @@
                                     <div class="col-4 py-3 px-1">
                                         <div class="d-flex align-items-center">
                                             <div class="flex-1 pt-3 pb-3">
-                                                <p class="fs-9 text-900"><%= item.productName %></p>
+                                                <p class="fs-9 text-900"><a class="text-900" href="/orderDetails?orderId=<%= order._id %>"><%= item.productName %></a></p>
                                             </div>
                                         </div>
                                     </div>
@@ -138,6 +138,43 @@
                 </div>
             </div>
         </div>
+         <!-- Pagination Controls -->
+         <nav aria-label="Page navigation example">
+            <ul class="pagination justify-content-center">
+                <% if (currentPage > 1) { %>
+                    <li class="page-item">
+                        <a class="page-link" href="?page=<%= currentPage - 1 %>" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                <% } else { %>
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                <% } %>
+
+                <% for (let i = 1; i <= totalPages; i++) { %>
+                    <li class="page-item <%= currentPage === i ? 'active' : '' %>"><a class="page-link" href="?page=<%= i %>"><%= i %></a></li>
+                <% } %>
+
+                <% if (currentPage < totalPages) { %>
+                    <li class="page-item">
+                        <a class="page-link" href="?page=<%= currentPage + 1 %>" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                <% } else { %>
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                <% } %>
+            </ul>
+        </nav>
+         <!-- Pagination Controls -->
         <br>
     </div>
 </div>

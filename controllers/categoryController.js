@@ -4,15 +4,25 @@ const Product = require('../model/admin/productSchema');
 
 
 
-const categoryPage = async(req,res)=>{
+const categoryPage = async (req, res) => {
     try {
-        // res.render('categoryManagement');
-        const categoryData = await Category.find();
-        res.render('categoryManagement', { categoryData });
+        const page = parseInt(req.query.page) || 1;
+        const limit = 10; // Number of categories per page
+        const skip = (page - 1) * limit;
+
+        const categoryData = await Category.find().skip(skip).limit(limit);
+        const totalCategories = await Category.countDocuments();
+
+        res.render('categoryManagement', {
+            categoryData,
+            currentPage: page,
+            totalPages: Math.ceil(totalCategories / limit)
+        });
     } catch (error) {
         console.log(error.message);
     }
 }
+
 
 const addCategory = async(req,res)=>{
     try {
@@ -41,27 +51,43 @@ const editCategoryPage = async (req, res) => {
     }
 }
 
-
-const categorySearch = async(req,res)=>{
+const categorySearch = async (req, res) => {
     try {
-        
+        const page = parseInt(req.query.page) || 1;
+        const limit = 10; // Number of categories per page
+        const skip = (page - 1) * limit;
+
         let categoryData = [];
-        if(req.query.search){
+        if (req.query.search) {
+            const searchQuery = {
+                $or: [
+                    { name: { $regex: req.query.search, $options: 'i' } },
+                    { description: { $regex: req.query.search, $options: 'i' } }
+                ]
+            };
+            categoryData = await Category.find(searchQuery).skip(skip).limit(limit);
+            const totalCategories = await Category.countDocuments(searchQuery);
 
-            categoryData = await Category.find({ $or: [{ name: { $regex: req.query.search, $options: 'i' }}, { sname: { $regex: req.query.search, $options: 'i' }}]});
+            res.render('categoryManagement', {
+                categoryData,
+                currentPage: page,
+                totalPages: Math.ceil(totalCategories / limit)
+            });
+        } else {
+            categoryData = await Category.find().skip(skip).limit(limit);
+            const totalCategories = await Category.countDocuments();
 
+            res.render('categoryManagement', {
+                categoryData,
+                currentPage: page,
+                totalPages: Math.ceil(totalCategories / limit)
+            });
         }
-        else{
-            categoryData = await Category.find();
-        }
-         res.render('categoryManagement', { categoryData });
-
     } catch (error) {
         console.log(error.message);
         res.render('error');
     }
 }
-
 
 
 //Adding new category 

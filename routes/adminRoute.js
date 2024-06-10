@@ -3,6 +3,7 @@ const adminController = require("../controllers/adminController");
 const categoryController = require("../controllers/categoryController");
 const productController = require("../controllers/productController");
 const orderController = require("../controllers/orderController");
+const couponController = require("../controllers/couponController");
 const session = require("express-session");
 const adminAuth = require('../middleware/adminAuth');
 const configureStorage = require('../util/multer');
@@ -68,6 +69,14 @@ admin_route.post('/toggle-product',adminAuth,productController.productDelete);
 admin_route.get('/orderManagement',adminAuth,orderController.orderManagement);
 admin_route.post('/updateOrderStatus',adminAuth,orderController.updateOrderStatus);
 admin_route.post('/approveReturn',adminAuth,orderController.approveReturn);
+
+
+//coupon controller
+admin_route.get('/couponManagement',adminAuth,couponController.couponManagementLoad);
+admin_route.get('/addCoupon',adminAuth,couponController.addCouponLoad);
+
+admin_route.post('/addCoupon',adminAuth,couponController.addCoupon);
+admin_route.post('/couponStatusChange',adminAuth,couponController.couponStatusChange);
 
 
 module.exports = admin_route;

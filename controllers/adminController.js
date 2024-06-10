@@ -41,14 +41,38 @@ const verifyLogin = async(req,res)=>{
     }
 }
 
-const userManage = async(req,res)=>{
+const userManage = async (req, res) => {
     try {
-        const usersData = await User.find({});
-        res.render('userManagement',{users:usersData});
+        const perPage = 10; // Number of users per page
+        const page = req.query.page || 1; // Current page number, default to 1
+
+        // Fetch the total count of users
+        const totalUsers = await User.countDocuments({});
+        
+        // Fetch users for the current page
+        const usersData = await User.find({})
+            .skip((perPage * page) - perPage)
+            .limit(perPage);
+
+        res.render('userManagement', {
+            users: usersData,
+            current: page,
+            pages: Math.ceil(totalUsers / perPage),
+            totalUsers: totalUsers
+        });
     } catch (error) {
         console.log(error.message);
     }
-}
+};
+
+// const userManage = async(req,res)=>{
+//     try {
+//         const usersData = await User.find({});
+//         res.render('userManagement',{users:usersData});
+//     } catch (error) {
+//         console.log(error.message);
+//     }
+// }
 
 const indexPage = async(req,res)=>{
     try {
@@ -82,17 +106,27 @@ const blockAndUnblockUser = async (req, res) => {
 
 const userSearch = async(req,res)=>{
     try {
+        const perPage = 10; // Number of users per page
+        const page = req.query.page || 1; // Current page number, default to 1
+
+        // Fetch the total count of users
+        const totalUsers = await User.countDocuments({});
+        
         
         let users = [];
         if(req.query.search){
 
-            users = await User.find({ $or: [{ fname: { $regex: req.query.search, $options: 'i' }}, { sname: { $regex: req.query.search, $options: 'i' }}]});
+            users = await User.find({ $or: [{ fname: { $regex: req.query.search, $options: 'i' }}, { sname: { $regex: req.query.search, $options: 'i' }}]}).skip((perPage * page) - perPage)
+            .limit(perPage);
+
 
         }
         else{
             users = await User.find();
         }
-         res.render('userManagement',{ users });
+         res.render('userManagement',{ users,   current: page,
+            pages: Math.ceil(totalUsers / perPage),
+            totalUsers: totalUsers });
 
     } catch (error) {
         console.log(error.message);

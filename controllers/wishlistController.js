@@ -15,7 +15,7 @@ const getWishlist = async (req, res, next) => {
             { $unwind: '$wishlistItems' },
             {
                 $lookup: {
-                    from: 'products', // Ensure this matches exactly with your collection name in MongoDB
+                    from: 'products', 
                     localField: 'wishlistItems',
                     foreignField: '_id',
                     as: 'productDetails'
