@@ -110,10 +110,6 @@
                             <span class="fa-solid fa-wallet"></span>&nbsp;&nbsp;&nbsp;WALLET</a>
                     </li>
                     <li class="main-nav-list">
-                        <a  href="/coupens" aria-expanded="false" aria-controls="fruitsVegetable">
-                            <span class="fa-solid fa-tags"></span>&nbsp;&nbsp;&nbsp;Coupons</a>
-                    </li>
-                    <li class="main-nav-list">
                         <a  href="/logout" aria-expanded="false" aria-controls="fruitsVegetable">
                             <span class="fa-solid fa-arrow-up-right-from-square fa-flip-horizontal"></span>&nbsp;&nbsp;&nbsp;Logout</a>
                     </li>
@@ -156,14 +152,14 @@
                           </tr>
                         </thead>
                         <tbody>
-                            <% for (let i = 0 ; i < wallet.transactionHistory.length ; i++){ %> 
-                          <tr>
-                            <th scope="row"><%= i+1 %></th>
-                            <td><%= wallet.transactionHistory[i].amount %></td>
-                            <td><%= wallet.transactionHistory[i].PaymentType %></td>
-                            <td><%= new Date(wallet.transactionHistory[i].date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }) %></td>
-                          </tr>
-                          <% } %>
+                            <% for (let i = wallet.transactionHistory.length - 1; i >= 0; i--) { %> 
+                                <tr>
+                                  <th scope="row"><%= wallet.transactionHistory.length - i %></th>
+                                  <td><%= wallet.transactionHistory[i].amount %></td>
+                                  <td><%= wallet.transactionHistory[i].PaymentType %></td>
+                                  <td><%= new Date(wallet.transactionHistory[i].date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }) %></td>
+                                </tr>
+                                <% } %>
                         </tbody>
                       </table>
                       <% }else { %> 

@@ -5,6 +5,8 @@ const userAuth = require('../middleware/auth');
 const nocache = require("nocache");
 const orderController = require("../controllers/orderController");
 const wishlistController = require("../controllers/wishlistController");
+const couponController = require("../controllers/couponController");
+
 
 const user_route = express();
 
@@ -41,6 +43,7 @@ user_route.get('/userProfile',userAuth,userController.userProfile);
 user_route.get('/manageAddress',userAuth,userController.manageAddress);
 user_route.get('/removeFromCart',userAuth,userController.removeFromCart);
 user_route.get('/checkoutPage',userAuth,userController.loadCheckout);
+user_route.get('/search',userAuth,userController.searchProducts);
 
 
 
@@ -74,6 +77,11 @@ user_route.get('/wishlist',userAuth, wishlistController.getWishlist);
 
 user_route.post('/addToWishlist', userAuth,wishlistController.addToWishlist);
 user_route.post('/removeFromWishlist',userAuth, wishlistController.removeFromWishlist);
+
+
+//coupon controller
+
+user_route.post('/apply-coupon',userAuth,couponController.applyCoupon);
 
 
 

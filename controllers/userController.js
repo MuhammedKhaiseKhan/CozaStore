@@ -12,6 +12,8 @@ const Cart = require('../model/cartSchema');
 const user_route = require('../routes/userRoute');
 const Order = require('../model/orderSchema');
 const { default: mongoose } = require("mongoose");
+const { name } = require('ejs');
+const Coupon = require('../model/couponSchema');
 
 
 
@@ -101,26 +103,116 @@ const aboutPage = async(req,res)=>{
 
 const homePage = async (req, res) => {
     try {
-        const categories = await Category.find({ is_delete: false });
-        const products = await Product.find({ isDeleted: false });
-        //cart icon quantity display
-        const userId = req.session.user_id;
-        const userCart = await Cart.findOne({ userId });
-        const userCarts = await Cart.findOne({ userId }).populate('cartItems.productId');
-        const product = userCarts.cartItems.map(item => item.productId);
-        let totalProductsInCart = 0;
-        if (userCart) {
-            totalProductsInCart = userCart.cartItems.reduce((total, item) => total + item.quantity, 0);
+        // Pagination
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const skip = (page - 1) * limit;
+
+        // Fetch filter options
+        const colors = await Product.distinct("color");
+        const brands = await Product.distinct("brand");
+
+        // Build query object for filtering
+        let query = { isDeleted: false };
+        if (req.query.category) {
+            query.category = req.query.category;
+        }
+        if (req.query.color) {
+            query.color = req.query.color;
+        }
+        if (req.query.brand) {
+            query.brand = req.query.brand;
         }
 
-        res.render('index', { categories, products , totalProductsInCart, userCart:userCarts , product});
+        // Fetch products based on query
+        let products = await Product.find(query).populate('category').skip(skip).limit(limit);
+
+        // Handle sorting
+        if (req.query.sort) {
+            switch (req.query.sort) {
+                case 'newness':
+                    products = products.sort((a, b) => b.createdAt - a.createdAt);
+                    break;
+                case 'price-asc':
+                    products = products.sort((a, b) => a.price - b.price);
+                    break;
+                case 'price-desc':
+                    products = products.sort((a, b) => b.price - a.price);
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        // Fetch categories
+        const categories = await Category.find({ is_delete: false });
+
+        // Count total products for pagination
+        const totalProducts = await Product.countDocuments(query);
+        const totalPages = Math.ceil(totalProducts / limit);
+
+        // Fetch user cart
+        const userId = req.session.user_id;
+        const userCarts = await Cart.findOne({ userId }).populate('cartItems.productId');
+        let totalProductsInCart = 0;
+        if (userCarts) {
+            totalProductsInCart = userCarts.cartItems.reduce((total, item) => total + item.quantity, 0);
+        }
+
+        // Render the index page with the fetched data
+        res.render('index', {
+            categories,
+            products,
+            totalProductsInCart,
+            userCart: userCarts,
+            currentPage: page,
+            totalPages,
+            limit,
+            colors,
+            brands
+        });
 
     } catch (error) {
-        console.log(error.message);
-        
+        console.log('Error in homePage controller:', error.message);
         res.status(500).send('Internal Server Error');
     }
 }
+
+
+// const homePage = async (req, res) => {
+//     try {
+//         const page = parseInt(req.query.page) || 1;
+//         const limit = parseInt(req.query.limit) || 10;
+//         const skip = (page - 1) * limit;
+
+//         const categories = await Category.find({ is_delete: false });
+//         const products = await Product.find({ isDeleted: false }).skip(skip).limit(limit);
+//         const totalProducts = await Product.countDocuments({ isDeleted: false });
+//         const totalPages = Math.ceil(totalProducts / limit);
+
+//         const userId = req.session.user_id;
+//         const userCarts = await Cart.findOne({ userId }).populate('cartItems.productId');
+//         let totalProductsInCart = 0;
+//         if (userCarts) {
+//             totalProductsInCart = userCarts.cartItems.reduce((total, item) => total + item.quantity, 0);
+//         }
+
+//         res.render('index', {
+//             categories,
+//             products,
+//             totalProductsInCart,
+//             userCart: userCarts,
+//             currentPage: page,
+//             totalPages,
+//             limit
+//         });
+
+//     } catch (error) {
+//         console.log('Error in homePage controller:', error.message);
+//         res.status(500).send('Internal Server Error');
+//     }
+// }
+
 
 
 const productPage = async(req,res)=>{
@@ -481,7 +573,8 @@ const addToCart = async (req, res) => {
     try {
        
         const userId = req.session.user_id
-        const { productId, quantity } = req.body;
+        const productId  = req.body.productId;
+        const  quantity = req.body. quantity || 1
         let userCart = await Cart.findOne({ userId });
         if (!userCart) {
             if (!userId) {
@@ -564,6 +657,8 @@ const loadCheckout = async(req,res)=>{
         const userId = req.session.user_id
         const userAddress = await Address.find({ user_id:userId }); 
         const cart = await Cart.findOne({ userId:userId }).populate('cartItems.productId');
+        const coupons = await Coupon.find({ status: true });
+        
 
         if (!cart) {
             // Handle case where cart doesn't exist
@@ -571,11 +666,94 @@ const loadCheckout = async(req,res)=>{
             return;
         }
 
-        res.render('checkoutPage', { userAddress, cart })
+        res.render('checkoutPage', { userAddress, cart,coupons })
     } catch (error) {
         console.log(error.message);
     }
 }
+
+
+// index search
+
+const searchProducts = async (req, res) => {
+    try {
+        const query = req.query.query;
+
+        // Pagination
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const skip = (page - 1) * limit;
+
+        // Fetch filter options
+        const colors = await Product.distinct("color");
+        const brands = await Product.distinct("brand");
+
+        // Build query object for searching and filtering
+        let searchQuery = {
+            productName: { $regex: query, $options: 'i' },
+            isDeleted: false
+        };
+        if (req.query.category) {
+            searchQuery.category = req.query.category;
+        }
+        if (req.query.color) {
+            searchQuery.color = req.query.color;
+        }
+        if (req.query.brand) {
+            searchQuery.brand = req.query.brand;
+        }
+
+        // Sort option
+        let sortOption = {};
+        if (req.query.sort) {
+            switch (req.query.sort) {
+                case 'newness':
+                    sortOption = { createdAt: -1 };
+                    break;
+                case 'price-asc':
+                    sortOption = { price: 1 };
+                    break;
+                case 'price-desc':
+                    sortOption = { price: -1 };
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        // Fetch products based on search and filtering query with sorting
+        let products = await Product.find(searchQuery).populate('category').sort(sortOption).skip(skip).limit(limit);
+
+        // Fetch filter options and user cart
+        const userId = req.session.user_id;
+        const categories = await Category.find({ is_delete: false });
+        const userCarts = await Cart.findOne({ userId }).populate('cartItems.productId');
+        let totalProductsInCart = 0;
+        if (userCarts) {
+            totalProductsInCart = userCarts.cartItems.reduce((total, item) => total + item.quantity, 0);
+        }
+
+        // Count total products for pagination
+        const totalProducts = await Product.countDocuments(searchQuery);
+        const totalPages = Math.ceil(totalProducts / limit);
+
+        // Render the search results page with the fetched data
+        res.render('index', {
+            totalProductsInCart,
+            colors,
+            brands,
+            userCart: userCarts,
+            products: products,
+            categories: categories,
+            currentPage: page,
+            totalPages,
+            limit
+        });
+    } catch (error) {
+        console.error('Error during product search:', error);
+        res.status(500).send('Internal Server Error');
+    }
+};
 
 
   
@@ -612,5 +790,5 @@ module.exports = {
     updateQuantity,
     removeFromCart,
     loadCheckout,
-    
+    searchProducts
 }

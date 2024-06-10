@@ -3,12 +3,21 @@ const Category = require('../model/admin/categorySchema');
 const Product = require('../model/admin/productSchema');
 
 
-const productPage = async(req,res)=>{
+const productPage = async (req, res) => {
     try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = 10; // Number of products per page
+        const skip = (page - 1) * limit;
 
-        const productData = await Product.find().populate('category');
+        const productData = await Product.find().populate('category').skip(skip).limit(limit);
+        const totalProducts = await Product.countDocuments();
 
-        res.render('productManagement',{productData});
+        res.render('productManagement', {
+            productData,
+            currentPage: page,
+            totalPages: Math.ceil(totalProducts / limit),
+            search: ''
+        });
     } catch (error) {
         console.log(error.message);
     }
@@ -31,29 +40,50 @@ const addProduct = async(req,res)=>{
 // Product search 
 const productSearch = async (req, res) => {
     try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = 10; // Number of products per page
+        const skip = (page - 1) * limit;
+        const searchQuery = req.query.search || '';
+        const searchTerm = new RegExp(searchQuery, 'i');
+
         let productData = [];
-        if (req.query.search) {
-            const searchTerm = new RegExp(req.query.search, 'i');
+        let totalProducts = 0;
+
+        if (searchQuery) {
             const category = await Category.findOne({ name: searchTerm });
             if (category) {
                 productData = await Product.find({
                     $or: [
                         { productName: searchTerm },
-                        { category: category._id } 
+                        { category: category._id }
+                    ]
+                }).skip(skip).limit(limit);
+                totalProducts = await Product.countDocuments({
+                    $or: [
+                        { productName: searchTerm },
+                        { category: category._id }
                     ]
                 });
             } else {
-               
-                productData = await Product.find({ productName: searchTerm });
+                productData = await Product.find({ productName: searchTerm }).skip(skip).limit(limit);
+                totalProducts = await Product.countDocuments({ productName: searchTerm });
             }
         } else {
-            productData = await Product.find();
+            productData = await Product.find().skip(skip).limit(limit);
+            totalProducts = await Product.countDocuments();
         }
-        res.render('productManagement', { productData });
+
+        res.render('productManagement', {
+            productData,
+            currentPage: page,
+            totalPages: Math.ceil(totalProducts / limit),
+            search: searchQuery
+        });
     } catch (error) {
         console.log(error.message);
     }
 };
+
 
 // loading edit product page
 const editProduct = async(req,res)=>{
