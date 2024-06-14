@@ -38,9 +38,11 @@ admin_route.get('/userManagement',adminAuth,adminController.userManage);
 admin_route.get('/signin',adminController.loadLogin);
 admin_route.get('/userSearch',adminAuth,adminController.userSearch);
 admin_route.get('/logout',adminAuth,adminController.adminLogout);
+admin_route.get('/salesReport',adminAuth,adminController.salesReport);
 
 admin_route.post('/signin',adminController.verifyLogin);
 admin_route.post('/toggle-block-user',adminAuth,adminController.blockAndUnblockUser);
+admin_route.post('/downloadExcel',adminAuth,adminController.downloadExcel);
 
 
 //category Controller
