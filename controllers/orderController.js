@@ -69,6 +69,7 @@ const placeOrder = async (req, res) => {
             paymentMethod: paymentMethod,
             totalAmount: total,
             couponId: coupon ? coupon.id : null, // Add coupon ID to the order
+            couponDiscount: couponDiscount // Add coupon discount amount to the order
         });
 
         await order.save();
@@ -115,7 +116,6 @@ const placeOrder = async (req, res) => {
 
 
 
-
 // const placeOrder = async (req, res) => {
 //     try {
 //         const userId = req.session.user_id;
@@ -135,9 +135,17 @@ const placeOrder = async (req, res) => {
 //         });
 
 //         const shippingCost = 60; // Assuming a fixed shipping cost
-//         const couponDiscount = 55; // Assuming a fixed coupon discount
-//         const total = subtotal + shippingCost - couponDiscount;
 
+//         // Retrieve coupon discount from session
+//         const coupon = req.session.coupon;
+//         let couponDiscount = 0;
+//         if (coupon) {
+//             const discountAmount = (subtotal * coupon.discountPercentage) / 100;
+//             couponDiscount = Math.min(discountAmount, coupon.maxRedeemableAmount);
+//         }
+
+//         const total = subtotal + shippingCost - couponDiscount;
+        
 //         const orderItems = cartItems.map(item => ({
 //             productId: item.productId._id,
 //             productName: item.productId.productName,
@@ -158,6 +166,7 @@ const placeOrder = async (req, res) => {
 //             address: shippingAddress,
 //             paymentMethod: paymentMethod,
 //             totalAmount: total,
+//             couponId: coupon ? coupon.id : null, // Add coupon ID to the order
 //         });
 
 //         await order.save();
@@ -201,6 +210,10 @@ const placeOrder = async (req, res) => {
 //         res.status(500).json({ success: false, message: 'Failed to place order. Please try again later.' });
 //     }
 // };
+
+
+
+
 
 
 // Payment verification  
