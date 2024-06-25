@@ -3,7 +3,7 @@
 
 	<!-- breadcrumb -->
 	<div class="container">
-		<div class="bread-crumb flex-w p-l-25 p-r-15 p-t-30 p-lr-0-lg">
+		<div class="bread-crumb flex-w p-l-25 p-r-15 p-t-30 p-lr-0-lg" >
 			<a href="/index.html" class="stext-109 cl8 hov-cl1 trans-04">
 				Home
 				<i class="fa fa-angle-right m-l-9 m-r-10" aria-hidden="true"></i>
@@ -73,9 +73,15 @@
 						</h4>
 
 						<span class="mtext-106 cl2">
-							<span class="original-price">₹<%= product.price %></span>
-							<br>
-							₹<%= product.discountPrice %>
+							<% if (product.specialOffer) { %>
+								<span class="original-price" style="text-decoration: line-through; color: #888;">₹<%= product.price %></span>
+								₹<%= product.discountPrice %>
+								<p class="text-success">
+									<i class="fa-solid fa-tag" style="color: #308a00;"></i> <%= product.offerName %> Offer Available for this Product
+								</p>
+							<% } else { %>
+								₹<%= product.price %>
+							<% } %>
 						</span>
 
 						<p class="stext-102 cl3 p-t-23">

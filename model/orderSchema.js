@@ -128,7 +128,11 @@ const orderSchema = mongoose.Schema({
     couponDiscount: { 
         type: Number,
         default: 0
-    }
+    },
+    offerDiscount:{
+        type: Number,
+        default: 0
+    },
 });
 
 module.exports = mongoose.model('Order', orderSchema);

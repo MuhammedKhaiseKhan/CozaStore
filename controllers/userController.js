@@ -14,6 +14,7 @@ const Order = require('../model/orderSchema');
 const { default: mongoose } = require("mongoose");
 const { name } = require('ejs');
 const Coupon = require('../model/couponSchema');
+const Offer = require('../model/offerSchema');
 
 
 
@@ -101,6 +102,65 @@ const aboutPage = async(req,res)=>{
     }
 }
 
+//checking the offer
+const checkOfferForProduct = async (product) => {
+    const now = new Date();
+
+    // Check for product-specific offer
+    let offer = await Offer.findOne({
+        Pname: product.productName,
+        expiredDate: { $gt: now },
+        status: true
+    });
+
+    if (offer) {
+        let discountPrice = product.price - (product.price * offer.discount / 100);
+
+        // Check if maxRedeemableAmount is applicable
+        if (offer.maxRedeemableAmount > 0 && offer.maxRedeemableAmount < discountPrice) {
+            discountPrice = product.price - offer.maxRedeemableAmount;
+        }
+
+        return {
+            discount: offer.discount,
+            discountPrice: discountPrice,
+            specialOffer: true,
+            offerName: offer.offer
+        };
+    }
+
+    // Check for category-specific offer
+    offer = await Offer.findOne({
+        category: product.category.name,
+        expiredDate: { $gt: now },
+        status: true
+    });
+
+    if (offer) {
+        let discountPrice = product.price - (product.price * offer.discount / 100);
+
+        // Check if maxRedeemableAmount is applicable
+        if (offer.maxRedeemableAmount > 0 && offer.maxRedeemableAmount < discountPrice) {
+            discountPrice = product.price - offer.maxRedeemableAmount;
+        }
+
+        return {
+            discount: offer.discount,
+            discountPrice: discountPrice,
+            specialOffer: true,
+            offerName: offer.offer
+        };
+    }
+
+    // No offer available
+    return {
+        discount: 0,
+        discountPrice: product.price,
+        specialOffer: false
+    };
+};
+
+
 const homePage = async (req, res) => {
     try {
         // Pagination
@@ -147,6 +207,17 @@ const homePage = async (req, res) => {
         // Fetch categories
         const categories = await Category.find({ is_delete: false });
 
+        // Check for offers and update product data
+        for (let i = 0; i < products.length; i++) {
+            const offerDetails = await checkOfferForProduct(products[i]);
+            products[i] = {
+                ...products[i]._doc,
+                discount: offerDetails.discount,
+                discountPrice: offerDetails.discountPrice,
+                specialOffer: offerDetails.specialOffer
+            };
+        }
+
         // Count total products for pagination
         const totalProducts = await Product.countDocuments(query);
         const totalPages = Math.ceil(totalProducts / limit);
@@ -176,20 +247,60 @@ const homePage = async (req, res) => {
         console.log('Error in homePage controller:', error.message);
         res.status(500).send('Internal Server Error');
     }
-}
+};
 
 
 // const homePage = async (req, res) => {
 //     try {
+//         // Pagination
 //         const page = parseInt(req.query.page) || 1;
 //         const limit = parseInt(req.query.limit) || 10;
 //         const skip = (page - 1) * limit;
 
+//         // Fetch filter options
+//         const colors = await Product.distinct("color");
+//         const brands = await Product.distinct("brand");
+
+//         // Build query object for filtering
+//         let query = { isDeleted: false };
+//         if (req.query.category) {
+//             query.category = req.query.category;
+//         }
+//         if (req.query.color) {
+//             query.color = req.query.color;
+//         }
+//         if (req.query.brand) {
+//             query.brand = req.query.brand;
+//         }
+
+//         // Fetch products based on query
+//         let products = await Product.find(query).populate('category').skip(skip).limit(limit);
+
+//         // Handle sorting
+//         if (req.query.sort) {
+//             switch (req.query.sort) {
+//                 case 'newness':
+//                     products = products.sort((a, b) => b.createdAt - a.createdAt);
+//                     break;
+//                 case 'price-asc':
+//                     products = products.sort((a, b) => a.price - b.price);
+//                     break;
+//                 case 'price-desc':
+//                     products = products.sort((a, b) => b.price - a.price);
+//                     break;
+//                 default:
+//                     break;
+//             }
+//         }
+
+//         // Fetch categories
 //         const categories = await Category.find({ is_delete: false });
-//         const products = await Product.find({ isDeleted: false }).skip(skip).limit(limit);
-//         const totalProducts = await Product.countDocuments({ isDeleted: false });
+
+//         // Count total products for pagination
+//         const totalProducts = await Product.countDocuments(query);
 //         const totalPages = Math.ceil(totalProducts / limit);
 
+//         // Fetch user cart
 //         const userId = req.session.user_id;
 //         const userCarts = await Cart.findOne({ userId }).populate('cartItems.productId');
 //         let totalProductsInCart = 0;
@@ -197,6 +308,7 @@ const homePage = async (req, res) => {
 //             totalProductsInCart = userCarts.cartItems.reduce((total, item) => total + item.quantity, 0);
 //         }
 
+//         // Render the index page with the fetched data
 //         res.render('index', {
 //             categories,
 //             products,
@@ -204,7 +316,9 @@ const homePage = async (req, res) => {
 //             userCart: userCarts,
 //             currentPage: page,
 //             totalPages,
-//             limit
+//             limit,
+//             colors,
+//             brands
 //         });
 
 //     } catch (error) {
@@ -224,23 +338,62 @@ const productPage = async(req,res)=>{
         console.log(error.message);
     }
 }
+
 const productDetail = async (req, res) => {
     try {
-        const productId = req.params.id; 
-        const product = await Product.findById(productId);
-        const category = await Category.find();
+        const productId = req.params.id;
+        const product = await Product.findById(productId).populate('category');
 
-        if (!product) {
-            // Handle case where product is not found
-            return res.status(404).render('error', { message: 'Product not found' });
+        if (!product || product.status !== true) {
+            // Handle case where product is not found or status is false
+            return res.status(404).render('error', { message: 'Product not found or not available' });
         }
 
-        res.render('product-detail', { product: product, category: category });
+        // Fetch categories
+        const categories = await Category.find({ is_delete: false });
+
+        // Check for offers on the product
+        const offerDetails = await checkOfferForProduct(product);
+
+        // Integrate offer details into the product object
+        const productWithOffer = {
+            ...product._doc,
+            discount: offerDetails.discount,
+            discountPrice: offerDetails.discountPrice,
+            specialOffer: offerDetails.specialOffer,
+            offerName: offerDetails.offerName
+        };
+
+        res.render('product-detail', {
+            product: productWithOffer,
+            category: categories
+        });
     } catch (error) {
         console.log(error.message);
-        // res.status(500).render('error', { message: 'Internal Server Error' });
+        res.status(500).render('error', { message: 'Internal Server Error' });
     }
 };
+
+
+
+
+// const productDetail = async (req, res) => {
+//     try {
+//         const productId = req.params.id; 
+//         const product = await Product.findById(productId);
+//         const category = await Category.find();
+
+//         if (!product) {
+//             // Handle case where product is not found
+//             return res.status(404).render('error', { message: 'Product not found' });
+//         }
+
+//         res.render('product-detail', { product: product, category: category });
+//     } catch (error) {
+//         console.log(error.message);
+//         // res.status(500).render('error', { message: 'Internal Server Error' });
+//     }
+// };
 
 
 const cartPage = async(req,res)=>{
@@ -568,37 +721,89 @@ const deleteAddress = async (req, res) => {
     }
 }
 
-
 const addToCart = async (req, res) => {
     try {
-       
-        const userId = req.session.user_id
-        const productId  = req.body.productId;
-        const  quantity = req.body. quantity || 1
+        const userId = req.session.user_id;
+        const productId = req.body.productId;
+        const quantity = req.body.quantity || 1;
+
+        // Fetch the product details
+        const product = await Product.findById(productId).populate('category');
+        if (!product) {
+            return res.status(404).json({ error: 'Product not found' });
+        }
+
+        // Check for any available offers for the product
+        const offerDetails = await checkOfferForProduct(product);
+
+        // Calculate the price to be added to the cart
+        const priceToUse = offerDetails.specialOffer ? offerDetails.discountPrice : product.price;
+        console.log('Calculated Price:', priceToUse);
+
+        // Find the user's cart
         let userCart = await Cart.findOne({ userId });
         if (!userCart) {
             if (!userId) {
                 throw new Error('User ID is required to create a cart');
             }
+            // Create a new cart if it doesn't exist
             userCart = new Cart({
                 userId,
-                cartItems: [{ productId, quantity }]
+                cartItems: [{ productId, quantity, price: priceToUse }]
             });
-        } else { 
-             const existingItem = userCart.cartItems.find(item => item.productId.equals(productId));
+        } else {
+            // Check if the product already exists in the cart
+            const existingItem = userCart.cartItems.find(item => item.productId.equals(productId));
             if (existingItem) {
+                // Update the quantity and price if the product already exists in the cart
                 existingItem.quantity += quantity;
+                existingItem.price = priceToUse;
             } else {
-                userCart.cartItems.push({ productId, quantity });
+                // Add the new product to the cart
+                userCart.cartItems.push({ productId, quantity, price: priceToUse });
             }
         }
+
+        // Save the updated cart
         await userCart.save();
         return res.status(200).json({ message: 'Item added to cart successfully' });
     } catch (error) {
-        console.log(error.message);
+        console.error('Error adding item to cart:', error.message);
         return res.status(500).json({ error: 'Internal server error' });
     }
 };
+
+
+// const addToCart = async (req, res) => {
+//     try {
+       
+//         const userId = req.session.user_id
+//         const productId  = req.body.productId;
+//         const  quantity = req.body. quantity || 1
+//         let userCart = await Cart.findOne({ userId });
+//         if (!userCart) {
+//             if (!userId) {
+//                 throw new Error('User ID is required to create a cart');
+//             }
+//             userCart = new Cart({
+//                 userId,
+//                 cartItems: [{ productId, quantity }]
+//             });
+//         } else { 
+//              const existingItem = userCart.cartItems.find(item => item.productId.equals(productId));
+//             if (existingItem) {
+//                 existingItem.quantity += quantity;
+//             } else {
+//                 userCart.cartItems.push({ productId, quantity });
+//             }
+//         }
+//         await userCart.save();
+//         return res.status(200).json({ message: 'Item added to cart successfully' });
+//     } catch (error) {
+//         console.log(error.message);
+//         return res.status(500).json({ error: 'Internal server error' });
+//     }
+// };
 
 const updateQuantity = async (req, res) => {
     try {
@@ -651,6 +856,7 @@ const removeFromCart = async(req,res)=>{
         res.status(500).json({ error: 'Internal server error' });      
     }
 }
+
 
 const loadCheckout = async(req,res)=>{
     try {
