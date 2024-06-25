@@ -24,22 +24,46 @@
                     <a class="btn btn-falcon-default btn-sm text-600" href="/shoping-cart.html"><span class="fas fa-pencil-alt"></span></a>
                 </div>
                 <div class="card-body">
+                    <% function calculateDiscountedPrice(item) { %>
+                        <% let productOffer = item.productId.productOffer || 0; %>
+                        <% let categoryOffer = item.productId.categoryOffer || 0; %>
+                        <% let bestOffer = Math.max(productOffer, categoryOffer); %>
+                        <% let discountAmount = (item.productId.price * (bestOffer / 100)); %>
+                        <% if (item.productId.maxRedeemableAmount && discountAmount > item.productId.maxRedeemableAmount) { %>
+                            <% discountAmount = item.productId.maxRedeemableAmount; %>
+                        <% } %>
+                        <% let discountedPrice = item.productId.price - discountAmount; %>
+                        <% return { discountedPrice, discountAmount }; %>
+                    <% } %>
+            
                     <% function calculateSubtotal(cartItems) { %>
                         <% let subtotal = 0; %>
                         <% cartItems.forEach(item => { %>
-                            <% subtotal += (item.productId.price * item.quantity); %>
+                            <% let { discountedPrice } = calculateDiscountedPrice(item); %>
+                            <% subtotal += (discountedPrice * item.quantity); %>
                         <% }); %>
                         <% return subtotal.toFixed(2); %>
                     <% } %>
-                    
+            
                     <% function calculateTotal(cartItems, discount) { %>
                         <% let subtotal = 0; %>
                         <% cartItems.forEach(item => { %>
-                            <% subtotal += (item.productId.price * item.quantity); %>
+                            <% let { discountedPrice } = calculateDiscountedPrice(item); %>
+                            <% subtotal += (discountedPrice * item.quantity); %>
                         <% }); %>
+            
                         <% const shippingCost = 60; %>
                         <% const total = subtotal + shippingCost - discount; %>
                         <% return total.toFixed(2); %>
+                    <% } %>
+            
+                    <% function calculateOfferDiscount(cartItems) { %>
+                        <% let offerDiscount = 0; %>
+                        <% cartItems.forEach(item => { %>
+                            <% let { discountAmount } = calculateDiscountedPrice(item); %>
+                            <% offerDiscount += (discountAmount * item.quantity); %>
+                        <% }); %>
+                        <% return offerDiscount.toFixed(2); %>
                     <% } %>
               
                     <table class="table table-borderless fs-10 mb-0">
@@ -48,8 +72,9 @@
                                 <th class="ps-0 pt-0"><%= item.productId.name %> x <%= item.quantity %>
                                     <div class="text-400 fw-normal fs-11"><%= item.productId.description %></div>
                                 </th>
-                                <th class="pe-0 text-end">₹<%= item.productId.price * item.quantity %></th>
-                            </tr>
+                                <% let { discountedPrice } = calculateDiscountedPrice(item); %>
+                                <th class="pe-0 text-end">₹<%= (discountedPrice * item.quantity).toFixed(2) %></th>
+                            </tr>            
                         <% }); %>
                         <tr class="border-bottom">
                             <th class="ps-0">Subtotal</th>
@@ -380,7 +405,7 @@ async function confirmOrder(addressId, paymentMethod) {
                     key: data.key_id,
                     amount: data.amount,
                     currency: "INR",
-                    name: "Zephyr",
+                    name: "Coza Store",
                     description: "Transaction Description",
                     image: "https://example.com/your_logo",
                     order_id: data.razorpayOrderId,

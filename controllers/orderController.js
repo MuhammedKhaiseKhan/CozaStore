@@ -9,6 +9,8 @@ const crypto = require('crypto')
 const Razorpay = require('razorpay');
 require('dotenv').config();
 const Wallet = require('../model/walletSchema');
+const PDFDocument = require('pdfkit');
+const fs = require('fs');
 
 
 
@@ -17,6 +19,7 @@ const razorpayInstance = new Razorpay({
     key_id: process.env.RAZORPAY_KEY_ID,
     key_secret: process.env.RAZORPAY_KEY_SECRET
 });
+
 
 const placeOrder = async (req, res) => {
     try {
@@ -32,8 +35,21 @@ const placeOrder = async (req, res) => {
         const shippingAddress = address.address.find(item => item._id.toString() === addressId);
 
         let subtotal = 0;
+        let totalDiscount = 0;
+        
         cartItems.forEach(item => {
-            subtotal += item.productId.price * item.quantity;
+            // Calculate the best offer for the product
+            let productOffer = item.productId.productOffer || 0;
+            let categoryOffer = item.productId.categoryOffer || 0;
+            let bestOffer = Math.max(productOffer, categoryOffer);
+            let discountAmount = (item.productId.price * (bestOffer / 100));
+            if (item.productId.maxRedeemableAmount && discountAmount > item.productId.maxRedeemableAmount) {
+                discountAmount = item.productId.maxRedeemableAmount;
+            }
+            let discountedPrice = item.productId.price - discountAmount;
+
+            subtotal += discountedPrice * item.quantity;
+            totalDiscount += discountAmount * item.quantity;
         });
 
         const shippingCost = 60; // Assuming a fixed shipping cost
@@ -47,7 +63,7 @@ const placeOrder = async (req, res) => {
         }
 
         const total = subtotal + shippingCost - couponDiscount;
-        
+
         const orderItems = cartItems.map(item => ({
             productId: item.productId._id,
             productName: item.productId.productName,
@@ -69,7 +85,8 @@ const placeOrder = async (req, res) => {
             paymentMethod: paymentMethod,
             totalAmount: total,
             couponId: coupon ? coupon.id : null, // Add coupon ID to the order
-            couponDiscount: couponDiscount // Add coupon discount amount to the order
+            couponDiscount: couponDiscount, // Add coupon discount amount to the order
+            offerDiscount: totalDiscount // Add offer discount amount to the order
         });
 
         await order.save();
@@ -82,7 +99,7 @@ const placeOrder = async (req, res) => {
         if (paymentMethod === 'OnlinePayment') {
             // If online payment method, initiate Razorpay checkout
             const options = {
-                amount: total * 100, // Amount in paisa
+                amount: Math.round(total * 100), // Amount in paisa, ensure it's an integer
                 currency: 'INR',
                 receipt: order._id.toString()
             };
@@ -98,7 +115,7 @@ const placeOrder = async (req, res) => {
                     orderId: order._id,
                     razorpayOrderId: razorpayOrder.id,
                     key_id: process.env.RAZORPAY_KEY_ID,
-                    amount: options.amount
+                    amount: options.amount // This should be in paisa
                 });
             });
         } else {
@@ -115,7 +132,6 @@ const placeOrder = async (req, res) => {
 };
 
 
-
 // const placeOrder = async (req, res) => {
 //     try {
 //         const userId = req.session.user_id;
@@ -130,8 +146,21 @@ const placeOrder = async (req, res) => {
 //         const shippingAddress = address.address.find(item => item._id.toString() === addressId);
 
 //         let subtotal = 0;
+//         let totalDiscount = 0;
+        
 //         cartItems.forEach(item => {
-//             subtotal += item.productId.price * item.quantity;
+//             // Calculate the best offer for the product
+//             let productOffer = item.productId.productOffer || 0;
+//             let categoryOffer = item.productId.categoryOffer || 0;
+//             let bestOffer = Math.max(productOffer, categoryOffer);
+//             let discountAmount = (item.productId.price * (bestOffer / 100));
+//             if (item.productId.maxRedeemableAmount && discountAmount > item.productId.maxRedeemableAmount) {
+//                 discountAmount = item.productId.maxRedeemableAmount;
+//             }
+//             let discountedPrice = item.productId.price - discountAmount;
+
+//             subtotal += discountedPrice * item.quantity;
+//             totalDiscount += discountAmount * item.quantity;
 //         });
 
 //         const shippingCost = 60; // Assuming a fixed shipping cost
@@ -145,7 +174,7 @@ const placeOrder = async (req, res) => {
 //         }
 
 //         const total = subtotal + shippingCost - couponDiscount;
-        
+
 //         const orderItems = cartItems.map(item => ({
 //             productId: item.productId._id,
 //             productName: item.productId.productName,
@@ -167,6 +196,8 @@ const placeOrder = async (req, res) => {
 //             paymentMethod: paymentMethod,
 //             totalAmount: total,
 //             couponId: coupon ? coupon.id : null, // Add coupon ID to the order
+//             couponDiscount: couponDiscount, // Add coupon discount amount to the order
+//             offerDiscount: totalDiscount // Add offer discount amount to the order
 //         });
 
 //         await order.save();
@@ -179,7 +210,7 @@ const placeOrder = async (req, res) => {
 //         if (paymentMethod === 'OnlinePayment') {
 //             // If online payment method, initiate Razorpay checkout
 //             const options = {
-//                 amount: total * 100, // Amount in paisa
+//                 amount: Math.round(total * 100), // Amount in paisa, ensure it's an integer
 //                 currency: 'INR',
 //                 receipt: order._id.toString()
 //             };
@@ -195,7 +226,7 @@ const placeOrder = async (req, res) => {
 //                     orderId: order._id,
 //                     razorpayOrderId: razorpayOrder.id,
 //                     key_id: process.env.RAZORPAY_KEY_ID,
-//                     amount: options.amount
+//                     amount: options.amount // This should be in paisa
 //                 });
 //             });
 //         } else {
@@ -211,10 +242,66 @@ const placeOrder = async (req, res) => {
 //     }
 // };
 
-
-
-
-
+const getPaymentDetails = async (req, res, next) => {
+    console.log("Starting getPaymentDetails");
+    try {
+      const { orderId } = req.body;
+      console.log("Order ID:", orderId);
+  
+      if (!req.session || !req.session.user_id) {
+        console.log("User is not authenticated.");
+        return res.status(403).json({ message: "User is not authenticated." });
+      }
+  
+      const order = await Order.findById(orderId);
+      if (!order) {
+        console.log("Order not found.");
+        return res.status(404).json({ success: false, message: "Order not found." });
+      }
+      console.log("Order found in DB:", order);
+  
+      if (order.userId.toString() !== req.session.user_id) {
+        console.log("Unauthorized access to the order.");
+        return res.status(403).json({ success: false, message: "Unauthorized access to the order." });
+      }
+  
+      const instance = new Razorpay({
+        key_id: process.env.RAZORPAY_KEY_ID,
+        key_secret: process.env.RAZORPAY_KEY_SECRET
+      });
+  
+      const amount = Math.round(order.totalAmount * 100); // Amount in paisa, ensure it's an integer
+      const options = {
+        amount: amount,
+        currency: 'INR',
+        receipt: orderId.toString()
+      };
+      console.log("Options for Razorpay order creation:", options);
+  
+      const razorpayOrder = await instance.orders.create(options);
+      if (!razorpayOrder) {
+        console.log("Failed to create Razorpay order.");
+        return res.status(500).json({ success: false, message: 'Failed to create payment order. Please try again later.' });
+      }
+      console.log("Razorpay order created:", razorpayOrder);
+  
+      order.razorpayOrderId = razorpayOrder.id;
+      await order.save();
+  
+      res.json({
+        success: true,
+        key_id: process.env.RAZORPAY_KEY_ID,
+        amount: amount,
+        currency: "INR",
+        razorpayOrderId: razorpayOrder.id,
+        orderId: order._id
+      });
+    } catch (error) {
+      console.log("Error in getPaymentDetails:", error.message);
+      next(error);
+    }
+  };
+  
 
 // Payment verification  
   
@@ -272,6 +359,126 @@ const orderDetails = async (req, res) => {
         res.status(500).send('Error fetching order details');
     }
 };
+
+const invoiceDownload = async (req, res) => {
+    try {
+        const orderId = req.params.orderId;
+        const order = await Order.findById(orderId).populate('orderItems.productId').exec();
+
+        if (!order) {
+            return res.status(404).json({ success: false, message: 'Order not found' });
+        }
+
+        const doc = new PDFDocument({ margin: 50 });
+        const filename = `Invoice-${orderId}.pdf`;
+
+        res.setHeader('Content-disposition', `attachment; filename="${filename}"`);
+        res.setHeader('Content-type', 'application/pdf');
+
+        doc.pipe(res);
+
+        // Helper function for drawing lines
+        const drawLine = (x1, y1, x2, y2) => {
+            doc.moveTo(x1, y1).lineTo(x2, y2).stroke();
+        };
+
+        // Header
+        doc.fontSize(24).font('Helvetica-Bold').text('INVOICE', { align: 'center' });
+        doc.moveDown(0.5);
+        
+        // Company Info (You can replace this with your company details)
+        doc.fontSize(10).font('Helvetica').text('Coza Store', { align: 'right' });
+        doc.text('Coza Store , Calicut, India', { align: 'right' });
+        doc.text('Phone: +91 9961009900', { align: 'right' });
+        doc.text('Email: cozastore@gmail.com', { align: 'right' });
+        
+        doc.moveDown(1);
+        drawLine(50, doc.y, 550, doc.y);
+        doc.moveDown(1);
+
+        // Order Info
+        
+        doc.fontSize(10).font('Helvetica').text(`Order Date: ${new Date(order.orderDate).toLocaleString()}`, { align: 'left' });
+        doc.text(`Order Status: ${order.orderStatus}`, { align: 'left' });
+        doc.moveDown(1);
+
+        // Billing Address
+        doc.fontSize(12).font('Helvetica-Bold').text('Billing Address', { align: 'left' });
+        doc.fontSize(10).font('Helvetica').text(`${order.address.Name}`, { align: 'left' });
+        doc.text(`${order.address.address}`, { align: 'left' });
+        doc.text(`${order.address.city}, ${order.address.state} ${order.address.PIN}`, { align: 'left' });
+        doc.text(`Email: ${order.address.email}`, { align: 'left' });
+        doc.text(`Phone: ${order.address.Mobile}`, { align: 'left' });
+        doc.moveDown(1);
+
+        // Order Items Table
+        const tableTop = doc.y;
+        const itemCodeX = 50;
+        const descriptionX = 100;
+        const quantityX = 300;
+        const priceX = 380;
+        const amountX = 480;
+
+        doc.fontSize(10).font('Helvetica-Bold');
+        doc.text('Item', itemCodeX, tableTop);
+        doc.text('Description', descriptionX, tableTop);
+        doc.text('Qty', quantityX, tableTop);
+        doc.text('Price', priceX, tableTop);
+        doc.text('Amount', amountX, tableTop);
+
+        drawLine(50, doc.y + 5, 550, doc.y + 5);
+        doc.moveDown(0.5);
+
+        // Table rows
+        doc.font('Helvetica');
+        let subtotal = 0;
+        order.orderItems.forEach((item, index) => {
+            const y = doc.y;
+            doc.text(index + 1, itemCodeX, y);
+            doc.text(item.productName, descriptionX, y);
+            doc.text(item.quantity, quantityX, y);
+            doc.text(`₹${item.price.toFixed(2)}`, priceX, y);
+            const amount = item.quantity * item.price;
+            subtotal += amount;
+            doc.text(`₹${amount.toFixed(2)}`, amountX, y);
+            doc.moveDown(0.5);
+        });
+
+        drawLine(50, doc.y, 550, doc.y);
+        doc.moveDown(0.5);
+
+        // Subtotal, Discount, and Total
+        doc.font('Helvetica-Bold');
+        const subtotalY = doc.y;
+        doc.text('Subtotal:', 350, subtotalY);
+        doc.text(`₹${subtotal.toFixed(2)}`, amountX, subtotalY);
+        doc.moveDown(0.5);
+
+        const discountAmount = subtotal - order.totalAmount;
+        const discountY = doc.y;
+        doc.text('Discount:', 350, discountY);
+        doc.text(`₹${discountAmount.toFixed(2)}`, amountX, discountY);
+        doc.moveDown(0.5);
+
+        drawLine(350, doc.y, 550, doc.y);
+        doc.moveDown(0.5);
+
+        const totalY = doc.y;
+        doc.fontSize(12);
+        doc.text('Total Amount:', 350, totalY);
+        doc.text(`₹${order.totalAmount.toFixed(2)}`, amountX, totalY);
+
+        // Footer
+        doc.fontSize(10).font('Helvetica');
+        doc.text('Thank you for your business!', 50, 700, { align: 'center' });
+
+        doc.end();
+    } catch (error) {
+        console.log(error.message);
+        res.status(500).send('Error fetching order details');
+    }
+};
+
 
 const orders = async (req, res) => {
     try {
@@ -572,5 +779,7 @@ module.exports = {
     cancellOrder,
     requestForReturn,
     verifyPayment,
-    loadWallet
+    loadWallet,
+    getPaymentDetails,
+    invoiceDownload
 }

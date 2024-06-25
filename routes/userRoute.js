@@ -67,10 +67,12 @@ user_route.get('/orderDetails',userAuth,orderController.orderDetails);
 user_route.get('/orders',userAuth,orderController.orders);
 user_route.get('/cancelOrder',userAuth,orderController.cancellOrder);
 user_route.get('/wallet',userAuth,orderController.loadWallet);
+user_route.get('/download-invoice/:orderId',userAuth,orderController.invoiceDownload);
 
 user_route.post('/place-order',userAuth,orderController.placeOrder);
 user_route.post('/verifyPayment',userAuth,orderController.verifyPayment);
 user_route.post('/returnOrder',userAuth,orderController.requestForReturn);
+user_route.post('/getPaymentDetails',userAuth,orderController.getPaymentDetails);
 
 //wishlist controller
 user_route.get('/wishlist',userAuth, wishlistController.getWishlist);

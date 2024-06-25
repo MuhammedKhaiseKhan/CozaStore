@@ -4,6 +4,7 @@ const categoryController = require("../controllers/categoryController");
 const productController = require("../controllers/productController");
 const orderController = require("../controllers/orderController");
 const couponController = require("../controllers/couponController");
+const offerController = require("../controllers/offerController");
 const session = require("express-session");
 const adminAuth = require('../middleware/adminAuth');
 const configureStorage = require('../util/multer');
@@ -80,6 +81,12 @@ admin_route.get('/addCoupon',adminAuth,couponController.addCouponLoad);
 admin_route.post('/addCoupon',adminAuth,couponController.addCoupon);
 admin_route.post('/couponStatusChange',adminAuth,couponController.couponStatusChange);
 
+// offer controller
+admin_route.get('/offerManagement',adminAuth,offerController.offerManagementLoad);
+admin_route.get('/addOffer',adminAuth,offerController.addOfferLoad);
+
+admin_route.post('/addOffer',adminAuth,offerController.addOffer);
+admin_route.post('/offerStatusChange',adminAuth,offerController.offerStatusChange);
 
 module.exports = admin_route;
 

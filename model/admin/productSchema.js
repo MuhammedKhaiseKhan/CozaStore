@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const categorySchema = require('./categorySchema');
 
 
 const productSchema = new mongoose.Schema({
@@ -54,6 +55,15 @@ const productSchema = new mongoose.Schema({
     popularProduct:{
         type:Boolean,
         default:false
+    },
+    productOffer:{
+        type:Number
+    },
+    categoryOffer:{
+        type:Number
+    },
+    maxRedeemableAmount:{
+        type:Number
     },
     isDeleted:{
         type:Boolean,

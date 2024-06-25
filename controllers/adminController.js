@@ -224,27 +224,33 @@ const downloadExcel = async (req, res) => {
 
         // Add the overall total row
         worksheet.addRow({
-            orderId: 'Overall Total',
+            orderId: '',
             orderDate: '',
             userName: '',
-            productName: '',
-            totalAmount: overallTotal.totalAmount,
-            couponDiscount: overallTotal.couponDiscount,
-            offerDiscount: overallTotal.offerDiscount,
-            finalPrice: overallTotal.finalPrice,
+            productName: 'Overall Total',
+            totalAmount: overallTotal.totalAmount.toFixed(2),
+            couponDiscount: overallTotal.couponDiscount.toFixed(2),
+            offerDiscount: overallTotal.offerDiscount.toFixed(2),
+            finalPrice: overallTotal.finalPrice.toFixed(2),
             orderStatus: ''
         });
 
+        // Set response headers and content type for the download
         res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        res.setHeader('Content-Disposition', 'attachment; filename="salesReport.xlsx"');
+        res.setHeader('Content-Disposition', 'attachment; filename=sales-report.xlsx');
 
+        // Write the workbook to the response
         await workbook.xlsx.write(res);
-        res.status(200).end();
+
+        // End the response
+        res.end();
     } catch (error) {
         console.error('Error generating Excel file:', error);
-        res.status(500).json({ error: 'Failed to download Excel file' });
+        res.status(500).send('Error generating Excel file');
     }
 };
+
+
 
 // const indexPage = async(req,res)=>{
 //     try {

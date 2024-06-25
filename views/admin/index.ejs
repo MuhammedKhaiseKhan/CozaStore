@@ -1,7 +1,66 @@
 
 <%- include('../layouts/adminLayout/header.ejs')%>
     
-    
+    <style>
+        /* General Styles */
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f8f9fa;
+    color: #343a40;
+}
+
+.container-xxl {
+    padding: 0;
+}
+
+
+
+.card {
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    margin: 20px 0;
+}
+
+.card-tale {
+    background-color: #4e73df;
+    color: #fff;
+}
+
+.card-dark-blue {
+    background-color: #1cc88a;
+    color: #fff;
+}
+
+.card-light-blue {
+    background-color: #36b9cc;
+    color: #fff;
+}
+
+.card-light-danger {
+    background-color: #f6c23e;
+    color: #fff;
+}
+
+.table {
+    margin-top: 20px;
+}
+
+.table thead {
+    background-color: #5da0e2;
+    color: #fff;
+}
+
+.table .text-center {
+    text-align: center;
+}
+
+/* Custom button styles */
+.custom-size {
+    padding: 5px 15px;
+    font-size: 0.875rem;
+}
+
+    </style>
 
 
     <div class="container-xxl position-relative bg-white d-flex p-0">
@@ -31,26 +90,14 @@
                     </div>
                 </div>
                 <div class="navbar-nav w-100">
-                    <a href="index.html" class="nav-item nav-link active"><i class="fa fa-tachometer-alt me-2"></i>Dashboard</a>
-                    <div class="nav-item dropdown">
-                        <a href="#"  class="nav-link dropdown-toggle" data-bs-toggle="dropdown" ><i class="fa fa-user me-2"></i>Manage User</a>
-                        <div class="dropdown-menu bg-transparent border-0">
-                            <a href="userManagement" class="dropdown-item active">All Users</a>
-                            <a href="" class="dropdown-item">Blocked Users</a>
-                        </div>
-                    </div>
-                    <a href="category" class="nav-item nav-link"><i class="fa fa-th me-2"></i>Manage Category</a>
-                    <a href="product" class="nav-item nav-link"><i class="fa fa-keyboard me-2"></i>Manage Products</a>
-                    <a href="orderManagement" class="nav-item nav-link"><i class="fa fa-table me-2"></i>Manage Orders</a>
-                    <a href="couponManagement" class="nav-item nav-link"><i class="fa-solid fa-ticket"></i>Manage Coupon</a>
-                    <div class="nav-item dropdown">
-                        <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown"><i class="far fa-file-alt me-2"></i>Pages</a>
-                        <div class="dropdown-menu bg-transparent border-0">
-                            <a href="signin.html" class="dropdown-item">Sign In</a>
-                            <a href="signup.html" class="dropdown-item">Sign Up</a>
-                            <a href="404.html" class="dropdown-item">404 Error</a>
-                            <a href="blank.html" class="dropdown-item">Blank Page</a>
-                        </div>
+                    <div class="navbar-nav w-100">
+                        <a href="index.html" class="nav-item nav-link active"><i class="fa fa-tachometer-alt me-2"></i>Dashboard</a>
+                        <a href="userManagement" class="nav-item nav-link" ><i class="fa fa-user me-2"></i>Manage User</a>
+                        <a href="category" class="nav-item nav-link"><i class="fa fa-th me-2"></i>Manage Category</a>
+                        <a href="product" class="nav-item nav-link"><i class="fa fa-keyboard me-2"></i>Manage Products</a>
+                        <a href="orderManagement" class="nav-item nav-link "><i class="fa fa-table me-2"></i>Manage Orders</a>
+                        <a href="couponManagement" class="nav-item nav-link "><i class="fa-solid fa-ticket"></i>Manage Coupon</a>
+                        <a href="offerManagement" class="nav-link "><i class="fa-solid fa-certificate"></i>Manage Offer</a>
                     </div>
                 </div>
             </nav>
@@ -90,77 +137,196 @@
 
 
             <!-- Sale & Revenue Start -->
-            <div class="container-fluid pt-4 px-4">
-                <div class="row g-4">
-                    <div class="col-sm-6 col-xl-3">
-                        <div class="bg-light rounded d-flex align-items-center justify-content-between p-4">
-                            <i class="fa fa-chart-line fa-3x text-primary"></i>
-                            <div class="ms-3">
-                                <p class="mb-2">Today Sale</p>
-                                <h6 class="mb-0">$1234</h6>
-                            </div>
+            <div class="main-panel">
+                <div class="content-wrapper">
+                  <div class="row">
+                    <div class="col-md-12 grid-margin">
+                      <div class="row">
+                        <div class="col-12 col-xl-8 mb-4 mb-xl-0">
+                          
+                          <h6 class="font-weight-normal mb-0">All systems are running smoothly!</h6>
                         </div>
-                    </div>
-                    <div class="col-sm-6 col-xl-3">
-                        <div class="bg-light rounded d-flex align-items-center justify-content-between p-4">
-                            <i class="fa fa-chart-bar fa-3x text-primary"></i>
-                            <div class="ms-3">
-                                <p class="mb-2">Total Sale</p>
-                                <h6 class="mb-0">$1234</h6>
-                            </div>
+                        <div class="col-12 col-xl-4">
+                          <div class="justify-content-end d-flex">
+                            <div id="currentDate"><i class="fa-solid fa-calendar-days"></i></div>
+                          </div>
                         </div>
+                      </div>
                     </div>
-                    <div class="col-sm-6 col-xl-3">
-                        <div class="bg-light rounded d-flex align-items-center justify-content-between p-4">
-                            <i class="fa fa-chart-area fa-3x text-primary"></i>
-                            <div class="ms-3">
-                                <p class="mb-2">Today Revenue</p>
-                                <h6 class="mb-0">$1234</h6>
+                  </div>
+              
+                  <div class="row">
+                    
+                    <div class="col-md-12 grid-margin transparent">
+                      <div class="row">
+                        <div class="col-md-6 mb-4 stretch-card transparent">
+                          <div class="card card-tale">
+                            <div class="card-body">
+                              <p class="mb-4">USERS</p>
+                              <p class="fs-30 mb-2"><%= userCount %></p>
+                              <p></p>
                             </div>
+                          </div>
                         </div>
-                    </div>
-                    <div class="col-sm-6 col-xl-3">
-                        <div class="bg-light rounded d-flex align-items-center justify-content-between p-4">
-                            <i class="fa fa-chart-pie fa-3x text-primary"></i>
-                            <div class="ms-3">
-                                <p class="mb-2">Total Revenue</p>
-                                <h6 class="mb-0">$1234</h6>
+                        <div class="col-md-6 mb-4 stretch-card transparent">
+                          <div class="card card-dark-blue">
+                            <div class="card-body">
+                              <p class="mb-4">PRODUCTS</p>
+                              <p class="fs-30 mb-2"><%= productCount %></p>
+                              <p></p>
                             </div>
+                          </div>
                         </div>
+                      </div>
+                      <div class="row">
+                        <div class="col-md-6 mb-4 mb-lg-0 stretch-card transparent">
+                          <div class="card card-light-blue">
+                            <div class="card-body">
+                              <p class="mb-4">Number of Orders</p>
+                              <p class="fs-30 mb-2"><%= orderCount %></p>
+                              <p></p>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="col-md-6 stretch-card transparent">
+                          <div class="card card-light-danger">
+                            <div class="card-body">
+                              <p class="mb-4">Total Sales</p>
+                              <p class="fs-30 mb-2">₹ <%= totalSales %></p>
+                              <p></p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                     </div>
+              
+                    <!-- Additional Charts -->
+                    <div class="container-fluid pt-4 px-4">
+                      <div class="row g-4">
+                          <div class="col-sm-12 col-xl-6">
+                              <div class="bg-light text-center rounded p-4">
+                                  <div class="d-flex align-items-center justify-content-between mb-4">
+                                      <h6 class="mb-0">Best Selling Categories</h6>
+                                      
+                                  </div>
+                                  <canvas id="best-selling-categories"></canvas>
+                              </div>
+                          </div>
+                          <div class="col-sm-12 col-xl-6">
+                              <div class="bg-light text-center rounded p-4">
+                                  <div class="d-flex align-items-center justify-content-between mb-4">
+                                      <h6 class="mb-0">Best Selling Products</h6>
+                                      
+                                  </div>
+                                  <canvas id="best-selling-products"></canvas>
+                              </div>
+                          </div>
+                      </div>
+                  </div>
+              
+                    <!-- Top Selling Section -->
+                    
+                    <div class="col-md-12 grid-margin">
+                      <div class="card">
+                        <div class="card-header">
+                          <div class="row">
+                            <div class="col-6">
+                              <h5>TOP SELLING</h5>
+                            </div>
+                            <div class="col-6 text-right">
+                              <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-secondary custom-size" onclick="showTable('category')">Category</button>
+                                <button type="button" class="btn btn-dark custom-size" onclick="showTable('product')">Product</button>
+                                <button type="button" class="btn btn-secondary custom-size" onclick="showTable('brand')">Brand</button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+              
+                        <!-- Tables -->
+                        <% if(topCategories.length > 0){ %>
+                          <% let i = 1 %>
+                          <table class="table mt-50" id="categoryTable">
+                            <thead class="thead-dark">
+                              <tr>
+                                <th scope="col">SL</th>
+                                <th scope="col">CATEGORY NAME</th>
+                                <th scope="col">COUNT</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <% topCategories.forEach(item => { %>
+                                <tr>
+                                  <th scope="row"><%= i %></th>
+                                  <td><%= item._id %></td>
+                                  <td><%= item.count %></td>
+                                </tr>
+                                <% i++ %>
+                              <% }) %>
+                            </tbody>
+                          </table>
+                        <% } %>
+              
+                        <% if(topProduct.length > 0){ %>
+                          <% let j = 1 %>
+                          <table class="table mt-50" id="productTable" style="display: none;">
+                            <thead class="thead-dark">
+                              <tr>
+                                <th scope="col">SL</th>
+                                <th scope="col">PRODUCT NAME</th>
+                                <th scope="col">COUNT</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <% topProduct.forEach(item => { %>
+                                <tr>
+                                  <th scope="row"><%= j %></th>
+                                  <td><%= item._id %></td>
+                                  <td><%= item.count %></td>
+                                </tr>
+                                <% j++ %>
+                              <% }) %>
+                            </tbody>
+                          </table>
+                        <% } %>
+              
+                        <% if(topBrand.length > 0){ %>
+                          <% let k = 1 %>
+                          <table class="table mt-50" id="brandTable" style="display: none;">
+                            <thead class="thead-dark">
+                              <tr>
+                                <th scope="col">SL</th>
+                                <th scope="col">BRAND NAME</th>
+                                <th scope="col">COUNT</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <% topBrand.forEach(item => { %>
+                                <tr>
+                                  <th scope="row"><%= k %></th>
+                                  <td><%= item._id %></td>
+                                  <td><%= item.count %></td>
+                                </tr>
+                                <% k++ %>
+                              <% }) %>
+                            </tbody>
+                          </table>
+                        <% } %>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-            </div>
+              </div>
             <!-- Sale & Revenue End -->
 
 
             <!-- Sales Chart Start -->
-            <div class="container-fluid pt-4 px-4">
-                <div class="row g-4">
-                    <div class="col-sm-12 col-xl-6">
-                        <div class="bg-light text-center rounded p-4">
-                            <div class="d-flex align-items-center justify-content-between mb-4">
-                                <h6 class="mb-0">Worldwide Sales</h6>
-                                <a href="">Show All</a>
-                            </div>
-                            <canvas id="worldwide-sales"></canvas>
-                        </div>
-                    </div>
-                    <div class="col-sm-12 col-xl-6">
-                        <div class="bg-light text-center rounded p-4">
-                            <div class="d-flex align-items-center justify-content-between mb-4">
-                                <h6 class="mb-0">Salse & Revenue</h6>
-                                <a href="">Show All</a>
-                            </div>
-                            <canvas id="salse-revenue"></canvas>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            
             <!-- Sales Chart End -->
             <div class="container-fluid pt-4 px-4">
                 
             </div>
-            <!-- headddd -->
+            <!--  -->
            
     <div class="container-fluid pt-4 px-4">
         <div class="bg-light text-center rounded p-4">
@@ -409,7 +575,8 @@
             $('#error-message').hide();
             return true;
         }
-// Excel download
+
+
 function downloadPDF() {
     const { jsPDF } = window.jspdf;
     const element = document.getElementById('salesReport');
@@ -439,7 +606,135 @@ function downloadPDF() {
         pdf.save('sales-report.pdf');
     });
 }
+
+// Excel download
+
+function downloadExcel() {
+    const tableRows = document.querySelectorAll('#salesReport tbody tr');
+    
+    if (tableRows.length === 0) {
+        console.error("No rows found in the table.");
+        return;
+    }
+
+    const data = Array.from(tableRows).map(row => {
+        const cells = row.querySelectorAll('td');
+        
+        if (cells.length < 9) {
+            console.error("Each row must have 9 cells.");
+            return null;
+        }
+
+        return {
+            orderId: cells[0].textContent.trim(),
+            orderDate: cells[1].textContent.trim(),
+            userName: cells[2].textContent.trim(),
+            productName: cells[3].textContent.trim(),
+            totalAmount: cells[4].textContent.trim().replace('₹', ''),
+            couponDiscount: cells[5].textContent.trim().replace('₹', ''),
+            offerDiscount: cells[6].textContent.trim().replace('₹', ''),
+            finalPrice: cells[7].textContent.trim().replace('₹', ''),
+            orderStatus: cells[8].textContent.trim()
+        };
+    }).filter(row => row !== null);
+
+    console.log(data); // Log data to ensure it's correct
+
+    fetch('/admin/downloadExcel', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ data: data }),
+    })
+    .then(response => response.blob())
+    .then(blob => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = 'sales-report.xlsx';
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+    })
+    .catch(error => console.error('Error downloading Excel:', error));
+}
+
+function showTable(type) {
+    document.getElementById('categoryTable').style.display = 'none';
+    document.getElementById('productTable').style.display = 'none';
+    document.getElementById('brandTable').style.display = 'none';
+    
+    if(type === 'category') {
+      document.getElementById('categoryTable').style.display = '';
+    } else if(type === 'product') {
+      document.getElementById('productTable').style.display = '';
+    } else if(type === 'brand') {
+      document.getElementById('brandTable').style.display = '';
+    }
+  }
+
     </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Data for best selling categories
+    const categoryData = <%- JSON.stringify(topCategories) %>;
+    const categoryLabels = categoryData.map(item => item._id);
+    const categoryCounts = categoryData.map(item => item.count);
+
+    // Data for best selling products
+    const productData = <%- JSON.stringify(topProduct) %>;
+    const productLabels = productData.map(item => item._id);
+    const productCounts = productData.map(item => item.count);
+
+    // Create chart for best selling categories
+    new Chart(document.getElementById('best-selling-categories'), {
+        type: 'bar',
+        data: {
+            labels: categoryLabels,
+            datasets: [{
+                label: 'Sales Count',
+                data: categoryCounts,
+                backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    // Create chart for best selling products
+    new Chart(document.getElementById('best-selling-products'), {
+        type: 'bar',
+        data: {
+            labels: productLabels,
+            datasets: [{
+                label: 'Sales Count',
+                data: productCounts,
+                backgroundColor: 'rgba(255, 99, 132, 0.6)',
+                borderColor: 'rgba(255, 99, 132, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+</script>
    
 
 

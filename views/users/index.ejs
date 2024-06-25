@@ -1,4 +1,6 @@
 <%- include('../layouts/userLayout/headerHome.ejs')%>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 		
 
 	<!-- Slider -->
@@ -248,7 +250,7 @@
         <div class="col-sm-6 col-md-4 col-lg-3 p-b-35 isotope-item <%= categoryName  %>">
             <div class="block2">
                 <div class="block2-pic hov-img0">
-                    <img src="<%= product.image[0] %>" alt="Product Image">
+                    <a href="/product-detail.html/<%= product._id %>"><img src="<%= product.image[0] %>" alt="Product Image"></a>
                     <a href="#" class="block2-btn flex-c-m stext-103 cl2 size-102 bg0 bor2 hov-btn1 p-lr-15 trans-04 js-show-modal1">
                         Quick View
                     </a>
@@ -259,8 +261,16 @@
                             <%= product.productName %>
                         </a> 
                         <span class="stext-105 cl3">
-                            ₹<%= product.price %>
-                        </span>
+							<% if (product.specialOffer) { %>
+								<span class="original-price" style="text-decoration: line-through; color: #888;">₹<%= product.price %></span>
+								₹<%= product.discountPrice %>
+								<p class="text-success">
+									<i class="fa-solid fa-tag" style="color: #308a00;"></i> Special Offer Available
+								</p>
+							<% } else { %>
+								₹<%= product.price %>
+							<% } %>
+						</span>
                     </div>
 					<!-- Add to wishlist or other actions -->
                     <div class="block2-txt-child2 flex-r p-t-3">
