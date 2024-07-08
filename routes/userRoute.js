@@ -32,10 +32,12 @@ user_route.get('/about.html',userController.aboutPage);
 user_route.get('/blog-detail.html',userController.blogDetailPage);
 user_route.get('/index.html',userAuth,userController.homePage);
 user_route.get('/product.html',userAuth,userController.productPage);
+
 user_route.get('/product-detail.html/:id',userAuth, userController.productDetail);
 user_route.get('/shoping-cart.html',userAuth,userController.cartPage);
 user_route.get('/registration', userController.registrationPage);
 user_route.get('/login',userController.loginPage);
+user_route.get('/',userController.loginPage);
 user_route.get('/otp',userController.otpPage);
 user_route.get('/resentOTP',userController.resentOTP);
 user_route.get('/logout',userAuth,userController.userLogout);

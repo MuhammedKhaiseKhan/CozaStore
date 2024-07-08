@@ -13,6 +13,7 @@ const app = express();
 
 // view engine 
 app.set('view engine', 'ejs');
+app.set('views','./views/admin')
 
 // Static files
 app.use(express.static('public/assets'));
@@ -26,11 +27,12 @@ app.use('/',userRoute);
 
 app.use('/admin',adminRoute);
 
-app.set('views','./views/admin')
+
 
 // Use centralized error handling middleware
 
 app.use(errorMiddleware);
+
 // 404
 app.all('*', (req, res) => {
     res.status(404).render('404', { status: 404, error: '' });
