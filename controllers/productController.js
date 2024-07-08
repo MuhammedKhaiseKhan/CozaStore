@@ -3,7 +3,7 @@ const Category = require('../model/admin/categorySchema');
 const Product = require('../model/admin/productSchema');
 
 
-const productPage = async (req, res) => {
+const productPage = async (req, res, next) => {
     try {
         const page = parseInt(req.query.page) || 1;
         const limit = 10; // Number of products per page
@@ -20,12 +20,13 @@ const productPage = async (req, res) => {
         });
     } catch (error) {
         console.log(error.message);
+        next(error);
     }
 }
 
 
 //Load add product page
-const addProduct = async(req,res)=>{
+const addProduct = async(req, res, next)=>{
     try {
 
         const allCatagories = await Category.find()
@@ -34,11 +35,12 @@ const addProduct = async(req,res)=>{
         res.render('add-product',{category:allCatagories})
     } catch (error) {
         console.log(error.message);
+        next(error);
     }
 }
 
 // Product search 
-const productSearch = async (req, res) => {
+const productSearch = async (req, res, next) => {
     try {
         const page = parseInt(req.query.page) || 1;
         const limit = 10; // Number of products per page
@@ -81,12 +83,13 @@ const productSearch = async (req, res) => {
         });
     } catch (error) {
         console.log(error.message);
+        next(error);
     }
 };
 
 
 // loading edit product page
-const editProduct = async(req,res)=>{
+const editProduct = async(req, res, next)=>{
     try {
   
         const ProductId = req.params.id;
@@ -106,11 +109,12 @@ const editProduct = async(req,res)=>{
     } catch (error) {
         console.error('Error fetching category:', error);
         res.status(500).render('error', { message: 'Error fetching category' });
+        next(error);
     }
 }
 
 // Adding new product
-const newProduct = async (req, res) => {
+const newProduct = async (req, res, next) => {
     try {
         const { productName, brandName, size, color, category, inStock, originalPrice, discountPrice, discount, description } = req.body;
 
@@ -142,11 +146,12 @@ const newProduct = async (req, res) => {
     } catch (error) {
         console.log(error.message);
         res.sendStatus(500);
+        next(error);
     }
 }
 
 //edit and save product
-const updateProduct = async (req, res) => {
+const updateProduct = async (req, res, next) => {
     try {
         // Check if there's a file uploaded for image
         let image;
@@ -188,12 +193,13 @@ const updateProduct = async (req, res) => {
         res.redirect('/admin/product'); 
     } catch (error) {
         console.log(error.message);
+        next(error);
         
     }
 }
 
 // Product Soft delete 
-const productDelete = async (req, res) => {
+const productDelete = async (req, res, next) => {
     try {
         const id = req.query.id; 
         const product = await Product.findById(id); 
@@ -207,7 +213,7 @@ const productDelete = async (req, res) => {
         res.status(200).json({ success: true, message });
     } catch (error) {
         console.log(error.message);
-        // Handle error
+        next(error);
     }
 }
 

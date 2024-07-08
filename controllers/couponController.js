@@ -1,6 +1,7 @@
 const Coupon = require('../model/couponSchema');
 const Order = require('../model/orderSchema');
 const User =  require('../model/userSchema');
+const Product = require('../model/admin/productSchema');
 
 const couponManagementLoad = async (req, res, next) => {
     try {
@@ -17,7 +18,7 @@ const couponManagementLoad = async (req, res, next) => {
         res.render('couponManagement', { coupons: coupons , currentPage, totalPages })
     } catch (error) {
         console.log(error.message);
-        next(error)
+        next(error);
     }
 }
 
@@ -27,7 +28,7 @@ const addCouponLoad = async (req, res, next) => {
         res.render('addCoupon')
     } catch (error) {
         console.log(error.message);
-        next(error)
+        next(error);
     }
 }
 
@@ -57,7 +58,7 @@ const addCoupon = async (req, res, next) => {
 
     } catch (error) {
         console.log(error.message);
-        next(error)
+        next(error);
     }
 }
 
@@ -89,21 +90,29 @@ const couponStatusChange = async (req, res, next) => {
 const applyCoupon = async (req, res, next) => {
     try {
         const { couponCode, totalAmount } = req.body;
-        const coupon = await Coupon.findOne({ status: true, couponCode: couponCode });
+
+        // Example validation or checking before processing
+        if (!couponCode) {
+            return res.status(400).json({ message: "Coupon code is required." });
+        }
+        
+        // Example: Fetch coupon data from database
+        const coupon = await Coupon.findOne({ couponCode: couponCode });
 
         if (!coupon) {
-            return res.status(400).json({ message: "Coupon code is incorrect!" });
+            return res.status(404).json({ message: "Coupon not found." });
         }
 
+        // Example: Check if coupon is applicable based on conditions
         if (coupon.minPurchaseAmt > totalAmount) {
             return res.status(400).json({ message: `This coupon is only valid for Purchases Over ${coupon.minPurchaseAmt}` });
         }
 
-        // Calculate the discount
+        // Example: Calculate discount or apply coupon logic
         const discountAmount = (totalAmount * coupon.discountPercentage) / 100;
         const couponDiscount = Math.min(discountAmount, coupon.maxRedeemableAmount);
 
-        // Save coupon details in session
+        // Example: Save coupon details in session or response
         req.session.coupon = {
             id: coupon._id,
             discountPercentage: coupon.discountPercentage,
@@ -111,9 +120,26 @@ const applyCoupon = async (req, res, next) => {
             discountAmount: couponDiscount // Save calculated discount amount
         };
 
+        // Example: Send response with success and discount
         res.status(200).json({ success: true, discount: couponDiscount });
     } catch (error) {
+        console.error('Error applying coupon:', error);
+        res.status(500).json({ message: 'An error occurred while applying the coupon.' });
+        next(error);
+    }
+};
+
+
+
+const removeCoupon = async (req, res, next) => {
+    try {
+        if (req.session.coupon) {
+            delete req.session.coupon; // Remove coupon from session
+        }
+        res.status(200).json({ success: true, message: 'Coupon removed successfully' });
+    } catch (error) {
         console.log(error.message);
+        res.status(500).json({ message: 'An error occurred while removing the coupon' });
         next(error);
     }
 };
@@ -149,5 +175,6 @@ module.exports = {
     addCoupon,
     couponStatusChange,
     // listCouponsInUserSide,
-    applyCoupon
+    applyCoupon,
+    removeCoupon
 }

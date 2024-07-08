@@ -83,7 +83,7 @@
 	</section>
 
 
-	<!-- Banner -->
+<!-- Banner -->
 <div class="sec-banner bg0 p-t-80 p-b-50">
     <div class="container">
         <div class="row">
@@ -93,7 +93,7 @@
                 <div class="block1 wrap-pic-w">
                     <img src="<%= category.image %>" alt="IMG-BANNER">
 
-                    <a href="/products?category=<%= category._id %>" class="block1-txt ab-t-l s-full flex-col-l-sb p-lr-38 p-tb-34 trans-03 respon3">
+                    <a href="#" class="block1-txt ab-t-l s-full flex-col-l-sb p-lr-38 p-tb-34 trans-03 respon3" data-category="<%= category._id %>">
                         <div class="block1-txt-child1 flex-col-l">
                             <span class="block1-name ltext-102 trans-04 p-b-8">
                                 <%= category.name %>
@@ -133,26 +133,12 @@
 					<button class="stext-106 cl6 hov1 bor3 trans-04 m-r-32 m-tb-5 how-active1" data-filter="*">
 						All Products
 					</button>
-
-					<button class="stext-106 cl6 hov1 bor3 trans-04 m-r-32 m-tb-5" data-filter=".women">
-						Women
-					</button>
-
-					<button class="stext-106 cl6 hov1 bor3 trans-04 m-r-32 m-tb-5" data-filter=".men">
-						Men
-					</button>
-
-					<button class="stext-106 cl6 hov1 bor3 trans-04 m-r-32 m-tb-5" data-filter=".bag">
-						Bag
-					</button>
-
-					<button class="stext-106 cl6 hov1 bor3 trans-04 m-r-32 m-tb-5" data-filter=".shoes">
-						Shoes
-					</button>
-
-					<button class="stext-106 cl6 hov1 bor3 trans-04 m-r-32 m-tb-5" data-filter=".watches">
-						Watches
-					</button>
+				
+					<% categories.forEach(category => { %>
+						<button class="stext-106 cl6 hov1 bor3 trans-04 m-r-32 m-tb-5" data-filter=".<%= category.name.toLowerCase() %>">
+							<%= category.name %>
+						</button>
+					<% }); %>
 				</div>
 
 				<div class="flex-w flex-c-m m-tb-10">
@@ -232,9 +218,9 @@
 							</div>
 							<div class="flex-w p-t-4 m-r--5">
 								<% brands.forEach(brand => { %>
-								<a href="?brand=<%= brand %>" class="flex-c-m stext-107 cl6 size-301 bor7 p-lr-15 hov-tag1 trans-04 m-r-5 m-b-5">
-									<%= brand %>
-								</a>
+									<a href="?brand=<%= brand %>" class="flex-c-m stext-107 cl6 size-301 bor7 p-lr-15 hov-tag1 trans-04 m-r-5 m-b-5 filter-link">
+										<%= brand %>
+									</a>
 								<% }); %>
 							</div>
 						</div>
@@ -242,46 +228,45 @@
 				</div>
 			</div>
 			<!-- product start -->
-
-<div class="row isotope-grid">
-    <% products.forEach(product => { 
-        const categoryName = product.category && product.category.name ? product.category.name.toLowerCase() : 'unknown';
-    %>
-        <div class="col-sm-6 col-md-4 col-lg-3 p-b-35 isotope-item <%= categoryName  %>">
-            <div class="block2">
-                <div class="block2-pic hov-img0">
-                    <a href="/product-detail.html/<%= product._id %>"><img src="<%= product.image[0] %>" alt="Product Image"></a>
-                    <a href="#" class="block2-btn flex-c-m stext-103 cl2 size-102 bg0 bor2 hov-btn1 p-lr-15 trans-04 js-show-modal1">
-                        Quick View
-                    </a>
-                </div>
-                <div class="block2-txt flex-w flex-t p-t-14">
-                    <div class="block2-txt-child1 flex-col-l">
-                        <a href="/product-detail.html/<%= product._id %>" class="stext-104 cl4 hov-cl1 trans-04 js-name-b2 p-b-6">
-                            <%= product.productName %>
-                        </a> 
-                        <span class="stext-105 cl3">
-							<% if (product.specialOffer) { %>
-								<span class="original-price" style="text-decoration: line-through; color: #888;">₹<%= product.price %></span>
-								₹<%= product.discountPrice %>
-								<p class="text-success">
-									<i class="fa-solid fa-tag" style="color: #308a00;"></i> Special Offer Available
-								</p>
-							<% } else { %>
-								₹<%= product.price %>
-							<% } %>
-						</span>
-                    </div>
-					<!-- Add to wishlist or other actions -->
-                    <div class="block2-txt-child2 flex-r p-t-3">
-						
+			<div class="row isotope-grid">
+				<% products.forEach(product => { 
+					const categoryName = product.category && product.category.name ? product.category.name.toLowerCase() : 'unknown';
+				%>
+					<div class="col-sm-6 col-md-4 col-lg-3 p-b-35 isotope-item <%= categoryName  %>">
+						<div class="block2">
+							<div class="block2-pic hov-img0">
+								<a href="/product-detail.html/<%= product._id %>"><img src="<%= product.image[0] %>" alt="Product Image"></a>
+								<a href="#" class="block2-btn flex-c-m stext-103 cl2 size-102 bg0 bor2 hov-btn1 p-lr-15 trans-04 js-show-modal1">
+									Quick View
+								</a>
+							</div>
+							<div class="block2-txt flex-w flex-t p-t-14">
+				<div class="block2-txt-child1 flex-col-l">
+					<a href="/product-detail.html/<%= product._id %>" class="stext-104 cl4 hov-cl1 trans-04 js-name-b2 p-b-6">
+						<%= product.productName %>
+					</a> 
+					<span class="stext-105 cl3">
+						<% if (product.inStock < 1) { %>
+							<span class="out-of-stock text-danger">Out of Stock</span>
+						<% } else if (product.specialOffer) { %>
+						<span class="original-price" style="text-decoration: line-through; color: #888;">₹<%= product.price %></span>
+							₹<%= product.discountPrice %>
+							<p class="text-success">
+								<i class="fa-solid fa-tag" style="color: #308a00;"></i> Special Offer Available
+							</p>
+						<% } else { %>
+							₹<%= product.price %>
+						<% } %>
+					</span>
+				</div>
+				<!-- Add to wishlist or other actions -->
+				<div class="block2-txt-child2 flex-r p-t-3">
 						<a href="#" class="btn-addwish-b2 dis-block pos-relative js-addwish-b2" onclick="addToWishlist('<%= product._id %>')">
-                            <img class="icon-heart1 dis-block trans-04" src="images/icons/icon-heart-01.png" alt="ICON">
-                            <img class="icon-heart2 dis-block trans-04 ab-t-l" src="images/icons/icon-heart-02.png" alt="ICON">
-                        </a>
-                        
-                    </div>
-                </div>
+							<img class="icon-heart1 dis-block trans-04" src="images/icons/icon-heart-01.png" alt="ICON">
+							<img class="icon-heart2 dis-block trans-04 ab-t-l" src="images/icons/icon-heart-02.png" alt="ICON">
+						</a>
+				</div>
+			</div>
             </div>
         </div>
     <% }); %>
@@ -326,7 +311,6 @@
 		</div>
 	</section>
 
-
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
@@ -357,6 +341,141 @@
         }
     }
 </script>
+
+<script>
+	function applyFilter(category, color, brand, sort) {
+    const params = new URLSearchParams(window.location.search);
+    const query = params.get('query'); // Preserve the original search query
+
+    // Construct the new URL with filters
+    const newUrl = new URL(window.location.href);
+    if (query) {
+        newUrl.searchParams.set('query', query);
+    }
+    if (category) {
+        newUrl.searchParams.set('category', category);
+    }
+    if (color) {
+        newUrl.searchParams.set('color', color);
+    }
+    if (brand) {
+        newUrl.searchParams.set('brand', brand);
+    }
+    if (sort) {
+        newUrl.searchParams.set('sort', sort);
+    }
+
+    // Navigate to the new URL
+    window.location.href = newUrl.toString();
+}
+
+// Attach event listeners to filter links
+document.querySelectorAll('.filter-link').forEach(link => {
+    link.addEventListener('click', event => {
+        event.preventDefault();
+        const url = new URL(event.target.href);
+        const category = url.searchParams.get('category');
+        const color = url.searchParams.get('color');
+        const brand = url.searchParams.get('brand');
+        const sort = url.searchParams.get('sort');
+        applyFilter(category, color, brand, sort);
+    });
+});
+</script>
+
+<script>
+    // Save the scroll position before the page reloads
+    window.addEventListener('beforeunload', () => {
+        localStorage.setItem('scrollPosition', window.scrollY);
+    });
+
+    // Restore the scroll position after the page loads
+    window.addEventListener('load', () => {
+        const scrollPosition = localStorage.getItem('scrollPosition');
+        if (scrollPosition) {
+            window.scrollTo(0, parseInt(scrollPosition, 10));
+            localStorage.removeItem('scrollPosition');
+        }
+    });
+
+    function applyFilter(category, color, brand, sort) {
+        const params = new URLSearchParams(window.location.search);
+        const query = params.get('query'); // Preserve the original search query
+
+        // Construct the new URL with filters
+        const newUrl = new URL(window.location.href);
+        if (query) {
+            newUrl.searchParams.set('query', query);
+        }
+        if (category) {
+            newUrl.searchParams.set('category', category);
+        } else {
+            newUrl.searchParams.delete('category');
+        }
+        if (color) {
+            newUrl.searchParams.set('color', color);
+        } else {
+            newUrl.searchParams.delete('color');
+        }
+        if (brand) {
+            newUrl.searchParams.set('brand', brand);
+        } else {
+            newUrl.searchParams.delete('brand');
+        }
+        if (sort) {
+            newUrl.searchParams.set('sort', sort);
+        } else {
+            newUrl.searchParams.delete('sort');
+        }
+
+        // Navigate to the new URL
+        window.location.href = newUrl.toString();
+    }
+
+    // Attach event listeners to filter links
+    document.querySelectorAll('.filter-link').forEach(link => {
+        link.addEventListener('click', event => {
+            event.preventDefault();
+            const url = new URL(event.target.href);
+            const category = url.searchParams.get('category');
+            const color = url.searchParams.get('color');
+            const brand = url.searchParams.get('brand');
+            const sort = url.searchParams.get('sort');
+            applyFilter(category, color, brand, sort);
+        });
+    });
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const categoryLinks = document.querySelectorAll('.block1-txt[data-category]');
+    const productSection = document.querySelector('.isotope-grid');
+    const filterButtons = document.querySelectorAll('.filter-tope-group button[data-filter]');
+    const scrollOffset = -100; // Adjust this value to set the desired offset
+
+    categoryLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const categoryId = this.getAttribute('data-category');
+            const categoryName = this.querySelector('.block1-name').textContent.trim().toLowerCase();
+
+            // Get the position of the product section and apply the offset
+            const productSectionPosition = productSection.getBoundingClientRect().top + window.pageYOffset + scrollOffset;
+
+            // Scroll to the products section with offset
+            window.scrollTo({ top: productSectionPosition, behavior: 'smooth' });
+
+            // Apply the appropriate category filter
+            filterButtons.forEach(button => {
+                if (button.getAttribute('data-filter') === `.${categoryName}`) {
+                    button.click();
+                }
+            });
+        });
+    });
+});
+</script>
+
 
 
 <%- include('../layouts/userLayout/footerHome.ejs')%>

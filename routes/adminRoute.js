@@ -40,6 +40,7 @@ admin_route.get('/signin',adminController.loadLogin);
 admin_route.get('/userSearch',adminAuth,adminController.userSearch);
 admin_route.get('/logout',adminAuth,adminController.adminLogout);
 admin_route.get('/salesReport',adminAuth,adminController.salesReport);
+admin_route.get('/getFilteredChartData',adminAuth,adminController.chartFilter);
 
 admin_route.post('/signin',adminController.verifyLogin);
 admin_route.post('/toggle-block-user',adminAuth,adminController.blockAndUnblockUser);

@@ -4,7 +4,7 @@ const Product = require('../model/admin/productSchema');
 
 
 
-const categoryPage = async (req, res) => {
+const categoryPage = async (req, res, next) => {
     try {
         const page = parseInt(req.query.page) || 1;
         const limit = 10; // Number of categories per page
@@ -20,21 +20,23 @@ const categoryPage = async (req, res) => {
         });
     } catch (error) {
         console.log(error.message);
+        next(error);
     }
 }
 
 
-const addCategory = async(req,res)=>{
+const addCategory = async(req,res, next)=>{
     try {
         res.render('add-category')
     } catch (error) {
         console.log(error.message);
+        next(error);
     }
 }
 
 // loading edit category page
 
-const editCategoryPage = async (req, res) => {
+const editCategoryPage = async (req, res, next) => {
     try {
         const categoryId = req.params.id;
 
@@ -48,10 +50,11 @@ const editCategoryPage = async (req, res) => {
     } catch (error) {
         console.error('Error fetching category:', error);
         res.status(500).render('error', { message: 'Error fetching category' });
+        next(error);
     }
 }
 
-const categorySearch = async (req, res) => {
+const categorySearch = async (req, res, next) => {
     try {
         const page = parseInt(req.query.page) || 1;
         const limit = 10; // Number of categories per page
@@ -86,13 +89,14 @@ const categorySearch = async (req, res) => {
     } catch (error) {
         console.log(error.message);
         res.render('error');
+        next(error);
     }
 }
 
 
 //Adding new category 
 
-const newCategory = async (req, res) => {
+const newCategory = async (req, res, next) => {
     try {
         const { name, description } = req.body;
 
@@ -118,13 +122,13 @@ const newCategory = async (req, res) => {
         res.redirect('/admin/category');
     } catch (error) {
         console.log(error.message);
-        // Handle error appropriately
+        next(error);
     }
 }
 
 
 // editing category and save
-const updateCategory = async (req, res) => {
+const updateCategory = async (req, res, next) => {
     try {
         let image;
         if (req.file) {
@@ -158,11 +162,11 @@ const updateCategory = async (req, res) => {
         res.redirect('/admin/category'); 
     } catch (error) {
         console.log(error.message);
-        // Handle error appropriately
+        next(error);
     }
 }
 
-const categoryDelete = async (req, res) => {
+const categoryDelete = async (req, res, next) => {
     try {
         const id = req.query.id; 
         const category = await Category.findById(id); 
@@ -176,7 +180,7 @@ const categoryDelete = async (req, res) => {
         res.status(200).json({ success: true, message });
     } catch (error) {
         console.log(error.message);
-        // Handle error
+        next(error);
     }
 }
 

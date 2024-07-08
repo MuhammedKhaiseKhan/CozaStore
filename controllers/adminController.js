@@ -5,7 +5,7 @@ const Order = require('../model/orderSchema');
 const ExcelJS = require('exceljs');
 // const productSchema = require('../model/admin/productSchema');
 
-const loadLogin = async(req,res)=>{
+const loadLogin = async(req,res,next)=>{
     try {
         if (req.session.isAdminAuthenticated) {
             // If admin is already authenticated, redirect to the admin dashboard
@@ -17,6 +17,7 @@ const loadLogin = async(req,res)=>{
        
     } catch (error) {
         console.log(error.message);
+        next(error)
     }
 }
 
@@ -43,7 +44,7 @@ const verifyLogin = async(req,res)=>{
     }
 }
 
-const userManage = async (req, res) => {
+const userManage = async (req, res , next) => {
     try {
         const perPage = 10; // Number of users per page
         const page = req.query.page || 1; // Current page number, default to 1
@@ -64,6 +65,7 @@ const userManage = async (req, res) => {
         });
     } catch (error) {
         console.log(error.message);
+        next(error)
     }
 };
 
@@ -175,7 +177,7 @@ const salesReport = async (req, res, next) => {
 
 
 // Controller for downloading Excel file
-const downloadExcel = async (req, res) => {
+const downloadExcel = async (req, res , next) => {
     try {
         const { data } = req.body;
 
@@ -247,6 +249,7 @@ const downloadExcel = async (req, res) => {
     } catch (error) {
         console.error('Error generating Excel file:', error);
         res.status(500).send('Error generating Excel file');
+        next(error)
     }
 };
 
@@ -262,7 +265,7 @@ const downloadExcel = async (req, res) => {
 
 
 
-const blockAndUnblockUser = async (req, res) => {
+const blockAndUnblockUser = async (req, res ,next) => {
     try {
         const id = req.query.id; 
         const userData = await User.findById(id); 
@@ -279,10 +282,11 @@ const blockAndUnblockUser = async (req, res) => {
     } catch (error) {
         console.log(error.message);
         res.status(500).json({ success: false, message: 'Failed to toggle block status' });
+        next(error);
     }
 };
 
-const userSearch = async(req,res)=>{
+const userSearch = async(req,res,next)=>{
     try {
         const perPage = 10; // Number of users per page
         const page = req.query.page || 1; // Current page number, default to 1
@@ -308,7 +312,7 @@ const userSearch = async(req,res)=>{
 
     } catch (error) {
         console.log(error.message);
-        res.render('error');
+        next(error);
     }
 }
 
@@ -318,6 +322,75 @@ const adminLogout = (req, res) => {
        
      res.redirect('/admin/signin');
 }
+
+const chartFilter = async (req, res, next) => {
+    try {
+        const { filter, chart } = req.query;
+        console.log(`Received filter: ${filter}, chart: ${chart}`);
+        
+        const currentDate = new Date();
+        let startDate;
+
+        // Set date range based on filter
+        switch (filter) {
+            case 'weekly':
+                startDate = new Date(currentDate.getTime() - 7 * 24 * 60 * 60 * 1000);
+                break;
+            case 'monthly':
+                startDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, currentDate.getDate());
+                break;
+            case 'yearly':
+                startDate = new Date(currentDate.getFullYear() - 1, currentDate.getMonth(), currentDate.getDate());
+                break;
+            default:
+                startDate = new Date(0); // Beginning of time
+        }
+
+        console.log(`Start Date: ${startDate}, Current Date: ${currentDate}`);
+
+        let aggregationPipeline;
+
+        if (chart === 'category') {
+            aggregationPipeline = [
+                { $match: { orderDate: { $gte: startDate, $lte: currentDate } } },
+                { $unwind: "$orderItems" },
+                { $group: { _id: '$orderItems.category', count: { $sum: 1 } } },
+                { $sort: { count: -1 } },
+                { $limit: 10 }
+            ];
+        } else if (chart === 'product') {
+            aggregationPipeline = [
+                { $match: { orderDate: { $gte: startDate, $lte: currentDate } } },
+                { $unwind: "$orderItems" },
+                { $group: { _id: '$orderItems.productName', count: { $sum: 1 } } },
+                { $sort: { count: -1 } },
+                { $limit: 10 }
+            ];
+        } else {
+            return res.status(400).json({ error: 'Invalid chart type' });
+        }
+
+        console.log(`Aggregation Pipeline: ${JSON.stringify(aggregationPipeline, null, 2)}`);
+
+        const result = await Order.aggregate(aggregationPipeline);
+        console.log(`Aggregation result for ${chart} chart with ${filter} filter:`, result);
+
+        if (result.length === 0) {
+            console.warn(`No data found for ${chart} chart with ${filter} filter`);
+        }
+
+        const labels = result.map(item => item._id);
+        const counts = result.map(item => item.count);
+
+        res.json({ labels, counts });
+    } catch (error) {
+        console.error('Error in getFilteredChartData:', error);
+        res.status(500).json({ error: 'Internal server error' });
+        next(error);
+    }
+};
+
+
 
 
 module.exports = {
@@ -329,5 +402,6 @@ module.exports = {
     userSearch,
     adminLogout,
     salesReport,
-    downloadExcel
+    downloadExcel,
+    chartFilter
 }

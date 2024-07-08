@@ -13,250 +13,215 @@
     z-index: 2051; /* Adjust z-index as needed */
 }
 </style>
+<style>
+    #removeCouponButton:hover {
+    background-color: red;
+    color: white;
+}
+</style>
 
-<div class="row justify-content-center ">
+<div class="row justify-content-center">
     <div class="col-lg-10">
         <div class="row g-3 mt-30" style="margin-top: 10px;">
-          <div class="col-xl-4 order-xl-1 mt-30">
-            <div class="card mt-30">
-                <div class="card-header bg-body-tertiary d-flex flex-between-center">
-                    <h5 class="mb-0">Order Summary</h5>
-                    <a class="btn btn-falcon-default btn-sm text-600" href="/shoping-cart.html"><span class="fas fa-pencil-alt"></span></a>
-                </div>
-                <div class="card-body">
-                    <% function calculateDiscountedPrice(item) { %>
-                        <% let productOffer = item.productId.productOffer || 0; %>
-                        <% let categoryOffer = item.productId.categoryOffer || 0; %>
-                        <% let bestOffer = Math.max(productOffer, categoryOffer); %>
-                        <% let discountAmount = (item.productId.price * (bestOffer / 100)); %>
-                        <% if (item.productId.maxRedeemableAmount && discountAmount > item.productId.maxRedeemableAmount) { %>
-                            <% discountAmount = item.productId.maxRedeemableAmount; %>
-                        <% } %>
-                        <% let discountedPrice = item.productId.price - discountAmount; %>
-                        <% return { discountedPrice, discountAmount }; %>
-                    <% } %>
-            
-                    <% function calculateSubtotal(cartItems) { %>
-                        <% let subtotal = 0; %>
-                        <% cartItems.forEach(item => { %>
-                            <% let { discountedPrice } = calculateDiscountedPrice(item); %>
-                            <% subtotal += (discountedPrice * item.quantity); %>
-                        <% }); %>
-                        <% return subtotal.toFixed(2); %>
-                    <% } %>
-            
-                    <% function calculateTotal(cartItems, discount) { %>
-                        <% let subtotal = 0; %>
-                        <% cartItems.forEach(item => { %>
-                            <% let { discountedPrice } = calculateDiscountedPrice(item); %>
-                            <% subtotal += (discountedPrice * item.quantity); %>
-                        <% }); %>
-            
-                        <% const shippingCost = 60; %>
-                        <% const total = subtotal + shippingCost - discount; %>
-                        <% return total.toFixed(2); %>
-                    <% } %>
-            
-                    <% function calculateOfferDiscount(cartItems) { %>
-                        <% let offerDiscount = 0; %>
-                        <% cartItems.forEach(item => { %>
-                            <% let { discountAmount } = calculateDiscountedPrice(item); %>
-                            <% offerDiscount += (discountAmount * item.quantity); %>
-                        <% }); %>
-                        <% return offerDiscount.toFixed(2); %>
-                    <% } %>
-              
-                    <table class="table table-borderless fs-10 mb-0">
-                        <% cart.cartItems.forEach(item => { %>
+            <div class="col-xl-4 order-xl-1 mt-30">
+                <div class="card mt-30">
+                    <div class="card-header bg-body-tertiary d-flex flex-between-center">
+                        <h5 class="mb-0">Order Summary</h5>
+                        <a class="btn btn-falcon-default btn-sm text-600" href="/shoping-cart.html">
+                            <span class="fas fa-pencil-alt"></span>
+                        </a>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-borderless fs-10 mb-0">
+                            <% cart.cartItems.forEach(item => { %>
+                                <tr class="border-bottom">
+                                    <th class="ps-0 pt-0"><%= item.productId.name %> x <%= item.quantity %>
+                                        <div class="text-400 fw-normal fs-11">
+                                            <%= item.productId.description %>
+                                        </div>
+                                    </th>
+                                    <th class="pe-0 text-end">₹<%= (item.productId.price * item.quantity).toFixed(2) %></th>
+                                </tr>
+                            <% }); %>
                             <tr class="border-bottom">
-                                <th class="ps-0 pt-0"><%= item.productId.name %> x <%= item.quantity %>
-                                    <div class="text-400 fw-normal fs-11"><%= item.productId.description %></div>
-                                </th>
-                                <% let { discountedPrice } = calculateDiscountedPrice(item); %>
-                                <th class="pe-0 text-end">₹<%= (discountedPrice * item.quantity).toFixed(2) %></th>
-                            </tr>            
-                        <% }); %>
-                        <tr class="border-bottom">
-                            <th class="ps-0">Subtotal</th>
-                            <th class="pe-0 text-end" id="subtotal">₹<%= calculateSubtotal(cart.cartItems) %></th>
-                        </tr>
-                        <tr class="border-bottom">
-                            <th class="ps-0">Coupon: <span class="text-success" id="coupon-code">None</span></th>
-                            <th class="pe-0 text-end" id="coupon-discount">₹0</th>
-                        </tr>
-                        <tr class="border-bottom">
-                            <th class="ps-0">Shipping</th>
-                            <th class="pe-0 text-end">₹60</th>
-                        </tr>
-                        <tr>
-                            <th class="ps-0 pb-0">Total</th>
-                            <th class="pe-0 text-end pb-0" id="total">₹<%= calculateTotal(cart.cartItems, 0) %></th>
-                        </tr>
-                    </table>
-                </div>
-                <div class="card-footer d-flex justify-content-between bg-body-tertiary">
-                    <div class="fw-semi-bold">Payable Total</div>
-                    <div class="fw-bold" id="payable-total">₹<%= calculateTotal(cart.cartItems, 0) %></div>
+                                <th class="ps-0">Subtotal</th>
+                                <th class="pe-0 text-end" id="subtotal">₹<%= subtotal %></th>
+                            </tr>
+                            <tr class="border-bottom">
+                                <th class="ps-0">Coupon: <span class="text-success" id="coupon-code">None</span></th>
+                                <th class="pe-0 text-end" id="coupon-discount">₹0</th>
+                            </tr>
+                            <tr class="border-bottom">
+                                <th class="ps-0">Shipping</th>
+                                <th class="pe-0 text-end">₹<%= shippingCost %></th>
+                            </tr>
+                            <tr>
+                                <th class="ps-0 pb-0">Total</th>
+                                <th class="pe-0 text-end pb-0" id="total">₹<%= total %></th>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="card-footer d-flex justify-content-between bg-body-tertiary">
+                        <div class="fw-semi-bold">Payable Total</div>
+                        <div class="fw-bold" id="payable-total">₹<%= total %></div>
+                    </div>
                 </div>
             </div>
-        </div>
-        
-            
+
             <div class="col-xl-8">
-              <div class="card mb-3">
-                <div class="card-header bg-body-tertiary">
-                  <div class="row flex-between-center">
-                    <div class="col-sm-auto">
-                      <h5 class="mb-2 mb-sm-0">Your Shipping Address</h5>
-                    </div>
-                    <div class="col-sm-auto">
-                        <button class="btn btn-falcon-default btn-sm" id="toggleAddressForm">
-                            <span class="fas fa-plus me-2" data-fa-transform="shrink-2"></span>Add New Address
-                        </button>
-                    </div> 
-                    <div class="card-body" id="addAddressForm" style="display: none;">
-                        <div class="container">
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="Name">Name</label>
-                                        <input type="text" class="form-control" id="Name" name="Name" required>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="email">Email</label>
-                                        <input type="email" class="form-control" id="email" name="email" required>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="Mobile">Mobile</label>
-                                        <input type="number" class="form-control" id="Mobile" name="Mobile" required>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="pin">PIN</label>
-                                        <input type="number" class="form-control" id="pin" name="pin"  required>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="Locality">Locality</label>
-                                        <input type="text" class="form-control" id="Locality" name="Locality" required>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="address">Address</label>
-                                        <textarea class="form-control" id="address" name="address" rows="3" required></textarea>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="city">City</label>
-                                        <input type="text" class="form-control" id="city" name="city" required>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="state">State</label>
-                                        <input type="text" class="form-control" id="state" name="state" required>
-                                    </div>
-                                </div>
-                                <div class="col-md-12">
-                                    <div class="radio-group">
-                                        <div class="form-group form-check">
-                                            <input type="radio" class="form-check-input" id="isHome" name="addressType" value="home" checked>
-                                            <label class="form-check-label" for="isHome">Home</label>
-                                        </div>
-                                        <div class="form-group form-check">
-                                            <input type="radio" class="form-check-input" id="isWork" name="addressType" value="work">
-                                            <label  class="form-check-label" for="isWork">Work </label>
-                                        </div>
-                                    </div>
-                                    <div class="submit-button-container">
-                                        <div class="form-group">
-                                            <button type="submit" class="btn btn-primary" id="submitButton">Submit</button>
-                                        </div>
-                                    </div>
+                <div class="card mb-3">
+                    <div class="card-header bg-body-tertiary">
+                        <div class="row flex-between-center">
+                            <div class="col-sm-auto">
+                                <h5 class="mb-2 mb-sm-0">Your Shipping Address</h5>
                             </div>
+                            <div class="col-sm-auto">
+                                <button class="btn btn-falcon-default btn-sm" id="toggleAddressForm">
+                                    <span class="fas fa-plus me-2" data-fa-transform="shrink-2"></span>Add New Address
+                                </button>
+                            </div>
+                            <div class="card-body" id="addAddressForm" style="display: none;">
+                                <div class="container">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="Name">Name</label>
+                                                <input type="text" class="form-control" id="Name" name="Name" required>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="email">Email</label>
+                                                <input type="email" class="form-control" id="email" name="email" required>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="Mobile">Mobile</label>
+                                                <input type="number" class="form-control" id="Mobile" name="Mobile" required>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="pin">PIN</label>
+                                                <input type="number" class="form-control" id="pin" name="pin" required>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="Locality">Locality</label>
+                                                <input type="text" class="form-control" id="Locality" name="Locality" required>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="address">Address</label>
+                                                <textarea class="form-control" id="address" name="address" rows="3" required></textarea>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="city">City</label>
+                                                <input type="text" class="form-control" id="city" name="city" required>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="state">State</label>
+                                                <input type="text" class="form-control" id="state" name="state" required>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-12">
+                                            <div class="radio-group">
+                                                <div class="form-group form-check">
+                                                    <input type="radio" class="form-check-input" id="isHome" name="addressType" value="home" checked>
+                                                    <label class="form-check-label" for="isHome">Home</label>
+                                                </div>
+                                                <div class="form-group form-check">
+                                                    <input type="radio" class="form-check-input" id="isWork" name="addressType" value="work">
+                                                    <label class="form-check-label" for="isWork">Work</label>
+                                                </div>
+                                            </div>
+                                            <div class="submit-button-container">
+                                                <div class="form-group">
+                                                    <button type="submit" class="btn btn-primary" id="submitButton">Submit</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>                 
                         </div>
-                    </div>                 
-                </div>
-                </div>
-                <div class="card-body">
-                  <div class="row">
-                    <% if (userAddress && userAddress.length > 0) { %>
-                        <% let i = 0;%>
-                          <% userAddress.forEach((singleAddress) => { %>
-                            <% singleAddress.address.forEach(address => { %>
-                              <div class="col-md-6 mb-3 mb-md-0">
-                                  <div class="form-check mb-0 custom-radio radio-select">
-                                      <input class="form-check-input" id="address-<%= i + 1 %>" type="radio" value="<%= address._id %>" name="clientName" <% if (i === 0) { %> checked <% } %> />
-                                      <label class="form-check-label mb-0 fw-bold d-block" for="address-<%= i + 1 %>"><%= address.Name %><span class="radio-select-content"><span><%= address.address %>,<br /><%= address.city %>,<br /><%= address.state %> <%= address.PIN %><span class="d-block mb-0 pt-2"><%= address.Mobile %></span></span></span></label>
-                                  </div>
-                              </div>
-                              <% i++ %>
-                              <% }); %>
-                          <% }); %>
-                      <% } else { %>
-                          <p>No addresses found.</p>
-                      <% } %>
-                  </div>
-              </div>
-              </div>
-
-
-              <div class="flex-w flex-sb-m bor15 p-t-18 p-b-15 p-lr-40 p-lr-15-sm ">
-                <div class="flex-w flex-m m-r-20 m-tb-5">
-                    <input class="stext-104 cl2 plh4 size-117 bor13 p-lr-20 m-r-10 m-tb-5" type="text" id="couponCode" name="coupon" placeholder="Coupon Code">
-                    <div class="flex-c-m stext-101 cl2 size-118 bg8 bor13 hov-btn3 p-lr-15 trans-04 pointer m-tb-5" id="applyCouponButton">
-                        Apply coupon
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <% if (userAddress && userAddress.length > 0) { %>
+                                <% let i = 0;%>
+                                <% userAddress.forEach((singleAddress) => { %>
+                                    <% singleAddress.address.forEach(address => { %>
+                                        <div class="col-md-6 mb-3 mb-md-0">
+                                            <div class="form-check mb-0 custom-radio radio-select">
+                                                <input class="form-check-input" id="address-<%= i + 1 %>" type="radio" value="<%= address._id %>" name="clientName" <% if (i === 0) { %> checked <% } %> />
+                                                <label class="form-check-label mb-0 fw-bold d-block" for="address-<%= i + 1 %>"><%= address.Name %><span class="radio-select-content"><span><%= address.address %>,<br /><%= address.city %>,<br /><%= address.state %> <%= address.PIN %><span class="d-block mb-0 pt-2"><%= address.Mobile %></span></span></span></label>
+                                            </div>
+                                        </div>
+                                        <% i++ %>
+                                    <% }); %>
+                                <% }); %>
+                            <% } else { %>
+                                <p>No addresses found.</p>
+                            <% } %>
+                        </div>
                     </div>
                 </div>
-                <div class="flex-w flex-m m-r-20 m-tb-5">
-                    <button class="btn btn-falcon-default btn-sm" id="showCouponButton">Show Coupon</button>
+
+                <div class="flex-w flex-sb-m bor15 p-t-18 p-b-15 p-lr-40 p-lr-15-sm">
+                    <div class="flex-w flex-m m-r-20 m-tb-5">
+                        <input class="stext-104 cl2 plh4 size-117 bor13 p-lr-20 m-r-10 m-tb-5" type="text" id="couponCode" name="coupon" placeholder="Coupon Code">
+                        <div class="flex-c-m stext-101 cl2 size-118 bg8 bor13 hov-btn3 p-lr-15 trans-04 pointer m-tb-5" id="applyCouponButton">
+                            Apply coupon
+                        </div>
+                        <div class="flex-c-m stext-101 cl2 size-118 bg8 bor13 hov-btn3 p-lr-15 trans-04 pointer m-tb-5" id="removeCouponButton" style="display: none;">
+                            Remove coupon
+                        </div>
+                    </div>
+                    <div class="flex-w flex-m m-r-20 m-tb-5">
+                        <button class="btn btn-falcon-default btn-sm" id="showCouponButton">Show Coupon</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header bg-body-tertiary">
+                        <h5 class="mb-0">Payment Method</h5>
+                    </div>
+                    <div class="card-body">
+                        <form>
+                            <div class="form-check mb-0">
+                                <input class="form-check-input" type="radio" value="OnlinePayment" id="OnlinePayment" checked="checked" name="PAYMENT" />
+                                <label class="form-check-label mb-2 fs-8" for="OnlinePayment">Online Payment</label>
+                            </div>
+                            <div class="form-check mb-0">
+                                <input class="form-check-input" type="radio" value="CashOnDelivery" id="CashOnDelivery" checked="checked" name="PAYMENT" />
+                                <label class="form-check-label mb-2 fs-8" for="CashOnDelivery">Cash On Delivery</label>
+                            </div>
+                            <div class="form-check mb-0">
+                                <input class="form-check-input" type="radio" value="UserWallet" id="UserWallet" checked="checked" name="PAYMENT" />
+                                <label class="form-check-label mb-2 fs-8" for="UserWallet">User Wallet</label>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-5 col-xl-12 col-xxl-5 ps-lg-4 ps-xl-2 ps-xxl-5 text-center text-md-start text-xl-center text-xxl-start">
+                                    <div class="fs-7 fw-semi-bold">All Total: <span class="text-primary" id="totalAmount">₹<%= total %> %></span></div>
+                                    <button id='confirmPayButton' class="btn btn-success mt-3 px-5" type="submit">Confirm &amp; Pay</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
-
-              <div class="card">
-                <div class="card-header bg-body-tertiary">
-                  <h5 class="mb-0">Payment Method</h5>
-                </div>
-                <div class="card-body">
-                  <form>
-                    <div class="form-check mb-0"><input class="form-check-input" type="radio" value="OnlinePayment" id="OnlinePayment" checked="checked" name="PAYMENT" /><label class="form-check-label mb-2 fs-8" for="OnlinePayment">Online Payment</label></div>
-                    <div class="form-check mb-0"><input class="form-check-input" type="radio" value="CashOnDelivery" id="CashOnDelivery" checked="checked" name="PAYMENT" /><label class="form-check-label mb-2 fs-8" for="CashOnDelivery">Cash On Delivery</label></div>
-                    <div class="form-check mb-0"><input class="form-check-input" type="radio" value="UserWallet" id="UserWallet" checked="checked" name="PAYMENT" /><label class="form-check-label mb-2 fs-8" for="UserWallet">User Wallet</label></div>
-                    
-                    <!-- <div class="border-bottom border-dashed my-5"></div> -->
-                    <div class="row">
-                        
-                      <!-- <div class="col-md-7 col-xl-12 col-xxl-7 px-md-3 mb-xxl-0 position-relative">
-                        <div class="d-flex"><img class="me-3" src="../../assets/img/icons/shield.png" alt="" width="60" height="60" />
-                          <div class="flex-1">
-                            <h5 class="mb-2">Buyer Protection</h5>
-                            <div class="form-check mb-0"><input class="form-check-input" id="protection-option-1" type="checkbox" checked="checked" /><label class="form-check-label mb-0" for="protection-option-1"> <strong>Full Refund </strong>If you don't <br class="d-none d-md-block d-lg-none" />receive your order</label></div>
-                            <div class="form-check"><input class="form-check-input" id="protection-option-2" type="checkbox" checked="checked" /><label class="form-check-label mb-0" for="protection-option-2"> <strong>Full or Partial Refund, </strong>If the product is not as described in details</label></div><a class="fs-10 ms-3 ps-2" href="#!">Learn More<span class="fas fa-caret-right ms-1" data-fa-transform="down-2">    </span></a>
-                          </div>
-                        </div>
-                        <div class="vertical-line d-none d-md-block d-xl-none d-xxl-block"> </div>
-                      </div> -->
-                      <div class="col-md-5 col-xl-12 col-xxl-5 ps-lg-4 ps-xl-2 ps-xxl-5 text-center text-md-start text-xl-center text-xxl-start">
-                        <div class="fs-7 fw-semi-bold">All Total: <span class="text-primary" id="totalAmount">₹<%= calculateTotal(cart.cartItems, 0) %></span></div>
-                        <button id='confirmPayButton' class="btn btn-success mt-3 px-5" type="submit">Confirm &amp; Pay</button>
-                    </div>
-                    </div>
-                  </form>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
     </div>
 </div>
+
 
 <!-- Coupon Modal start-->
 <div class="modal fade custom-slide-in-right modal-fullscreen" id="couponModal" tabindex="-1" role="dialog" aria-labelledby="couponModalLabel" aria-hidden="true">
@@ -445,13 +410,87 @@ async function confirmOrder(addressId, paymentMethod) {
                 });
             }
         } else {
-            Swal.fire('Sorry', data.message, 'warning');
+            if (data.message === 'Cash on Delivery is not available for orders above Rs 1000. Please choose a different payment method.') {
+                Swal.fire('Error', data.message, 'error');
+            } else if (response.status === 400 && data.message === 'Insufficient balance in wallet') {
+                Swal.fire('Error', 'Insufficient balance in wallet. Please choose another payment method.', 'error');
+            } else {
+                Swal.fire('Sorry', data.message || 'An error occurred', 'warning');
+            }
         }
     } catch (error) {
         console.error('Error:', error);
         Swal.fire('Error', 'Network Error. Try again.', 'error');
     }
 }
+
+
+
+// async function confirmOrder(addressId, paymentMethod) {
+//     try {
+//         const response = await fetch('/place-order', {
+//             method: 'POST',
+//             headers: {
+//                 'Content-Type': 'application/json'
+//             },
+//             body: JSON.stringify({ addressId, paymentMethod })
+//         });
+
+//         const data = await response.json();
+
+//         if (response.ok) {
+//             if (paymentMethod === "OnlinePayment") {
+//                 const options = {
+//                     key: data.key_id,
+//                     amount: data.amount,
+//                     currency: "INR",
+//                     name: "Coza Store",
+//                     description: "Transaction Description",
+//                     image: "https://example.com/your_logo",
+//                     order_id: data.razorpayOrderId,
+//                     handler: function(response) {
+//                         verifyPayment(response.razorpay_payment_id, response.razorpay_order_id, response.razorpay_signature, data.orderId);
+//                     },
+//                     prefill: {
+//                         name: "Customer Name",
+//                         email: "customer_email@example.com",
+//                         contact: "customer_phone"
+//                     },
+//                     theme: {
+//                         color: "#192e68"
+//                     },
+//                     modal: {
+//                         ondismiss: function() {
+//                             window.location.href = '/orders';
+//                         }
+//                     }
+//                 };
+//                 const paymentGateway = new Razorpay(options);
+
+//                 paymentGateway.on('payment.failed', function(response) {
+//                     Swal.fire('Payment Failed', 'Your payment could not be processed. Please try again.', 'error').then(() => {
+//                         window.location.href = '/orders';
+//                     });
+//                 });
+
+//                 paymentGateway.open();
+//             } else {
+//                 Swal.fire({
+//                     title: "Order Placed",
+//                     text: "Your Order is Confirmed",
+//                     icon: "success"
+//                 }).then(() => {
+//                     window.location.href = `/orderDetails?orderId=${data.orderId}`;
+//                 });
+//             }
+//         } else {
+//             Swal.fire('Sorry', data.message, 'warning');
+//         }
+//     } catch (error) {
+//         console.error('Error:', error);
+//         Swal.fire('Error', 'Network Error. Try again.', 'error');
+//     }
+// }
 
 async function verifyPayment(paymentId, razorpayOrderId, signature, orderId) {
     console.log("Verifying Payment:", { paymentId, razorpayOrderId, signature, orderId }); // Debugging line
@@ -534,36 +573,131 @@ document.getElementById('showCouponButton').addEventListener('click', function()
 
     // apply coupon
     $(document).ready(function() {
-    $('#applyCouponButton').click(function() {
-        var couponCode = $('#couponCode').val();
-        var subtotal = parseFloat($('#subtotal').text().replace('₹', '')); // Get current subtotal
+        $('#applyCouponButton').click(function() {
+            var couponCode = $('#couponCode').val();
+            var subtotal = parseFloat($('#subtotal').text().replace('₹', '')); // Get current subtotal
 
-        $.ajax({
-            url: '/apply-coupon', // Update with your route
-            method: 'POST',
-            data: { 
-                couponCode: couponCode,
-                totalAmount: subtotal // Send subtotal as totalAmount
-            },
-            success: function(response) {
-                if (response.success) {
-                    $('#coupon-code').text(couponCode);
-                    $('#coupon-discount').text('-₹' + response.discount);
-                    var shippingCost = 60; // Assuming fixed shipping cost
-                    var total = subtotal + shippingCost - response.discount; // Calculate new total
-                    $('#total').text('₹' + total.toFixed(2));
-                    $('#payable-total').text('₹' + total.toFixed(2));
-                    $('#totalAmount').text('₹' + total.toFixed(2));
-                } else {
-                    alert(response.message); // Display error message from server
+            $.ajax({
+                url: '/apply-coupon', // Update with your route
+                method: 'POST',
+                data: { 
+                    couponCode: couponCode,
+                    totalAmount: subtotal // Send subtotal as totalAmount
+                },
+                success: function(response) {
+                    if (response.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Coupon Applied Successfully!',
+                            text: `Discount of ₹${response.discount} applied.`,
+                            confirmButtonText: 'Okay'
+                        }).then(() => {
+                            $('#coupon-code').text(couponCode);
+                            $('#coupon-discount').text('-₹' + response.discount);
+                            var shippingCost = 60; // Assuming fixed shipping cost
+                            var total = subtotal + shippingCost - response.discount; // Calculate new total
+                            $('#total').text('₹' + total.toFixed(2));
+                            $('#payable-total').text('₹' + total.toFixed(2));
+                            $('#totalAmount').text('₹' + total.toFixed(2));
+                            $('#applyCouponButton').hide();
+                            $('#removeCouponButton').show();
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Coupon Application Failed!',
+                            text: response.message,
+                            confirmButtonText: 'Okay'
+                        });
+                    }
+                },
+                error: function(error) {
+                    console.error('Error applying coupon:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error!',
+                        text: 'An error occurred while applying the coupon. Please try again.',
+                        confirmButtonText: 'Okay'
+                    });
                 }
-            },
-            error: function(error) {
-                console.error('Error applying coupon:', error);
-            }
+            });
+        });
+
+        $('#removeCouponButton').click(function() {
+            var subtotal = parseFloat($('#subtotal').text().replace('₹', ''));
+
+            $.ajax({
+                url: '/remove-coupon', // Update with your route
+                method: 'POST',
+                success: function(response) {
+                    if (response.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Coupon Removed Successfully!',
+                            confirmButtonText: 'Okay'
+                        }).then(() => {
+                            $('#coupon-code').text('');
+                            $('#coupon-discount').text('');
+                            var shippingCost = 60; // Assuming fixed shipping cost
+                            var total = subtotal + shippingCost; // Recalculate total without discount
+                            $('#total').text('₹' + total.toFixed(2));
+                            $('#payable-total').text('₹' + total.toFixed(2));
+                            $('#totalAmount').text('₹' + total.toFixed(2));
+                            $('#applyCouponButton').show();
+                            $('#removeCouponButton').hide();
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Coupon Removal Failed!',
+                            text: response.message,
+                            confirmButtonText: 'Okay'
+                        });
+                    }
+                },
+                error: function(error) {
+                    console.error('Error removing coupon:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error!',
+                        text: 'An error occurred while removing the coupon. Please try again.',
+                        confirmButtonText: 'Okay'
+                    });
+                }
+            });
         });
     });
-});
+//     $(document).ready(function() {
+//     $('#applyCouponButton').click(function() {
+//         var couponCode = $('#couponCode').val();
+//         var subtotal = parseFloat($('#subtotal').text().replace('₹', '')); // Get current subtotal
+
+//         $.ajax({
+//             url: '/apply-coupon', // Update with your route
+//             method: 'POST',
+//             data: { 
+//                 couponCode: couponCode,
+//                 totalAmount: subtotal // Send subtotal as totalAmount
+//             },
+//             success: function(response) {
+//                 if (response.success) {
+//                     $('#coupon-code').text(couponCode);
+//                     $('#coupon-discount').text('-₹' + response.discount);
+//                     var shippingCost = 60; // Assuming fixed shipping cost
+//                     var total = subtotal + shippingCost - response.discount; // Calculate new total
+//                     $('#total').text('₹' + total.toFixed(2));
+//                     $('#payable-total').text('₹' + total.toFixed(2));
+//                     $('#totalAmount').text('₹' + total.toFixed(2));
+//                 } else {
+//                     alert(response.message); // Display error message from server
+//                 }
+//             },
+//             error: function(error) {
+//                 console.error('Error applying coupon:', error);
+//             }
+//         });
+//     });
+// });
 
 
 </script>

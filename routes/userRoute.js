@@ -84,6 +84,7 @@ user_route.post('/removeFromWishlist',userAuth, wishlistController.removeFromWis
 //coupon controller
 
 user_route.post('/apply-coupon',userAuth,couponController.applyCoupon);
+user_route.post('/remove-coupon', userAuth, couponController.removeCoupon);
 
 
 

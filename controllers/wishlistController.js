@@ -76,11 +76,12 @@ const addToWishlist = async (req, res, next) => {
     } catch (error) {
         console.error(error.message);
         res.status(500).json({ message: "Failed to update wishlist", error });
+        next(error);
     }
 };
 
 
-const removeFromWishlist = async (req, res) => {
+const removeFromWishlist = async (req, res, next) => {
     try {
         const { productId } = req.query;
         const userId = req.session.user_id;
@@ -100,6 +101,7 @@ const removeFromWishlist = async (req, res) => {
     } catch (error) {
         console.error("Error removing from wishlist:", error);
         res.status(500).json({ message: 'Failed to remove product from wishlist', error });
+        next(error);
     }
 };
 

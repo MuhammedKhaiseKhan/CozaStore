@@ -29,7 +29,7 @@ const securePassword = async (password)=>{
     }
 }
 
-const insertUser = async(req,res)=>{
+const insertUser = async(req, res, next)=>{
     try {
         const sPassword = await securePassword(req.body.password);
         const {fname,sname,username,email,number,spassword}=req.body
@@ -58,47 +58,52 @@ const insertUser = async(req,res)=>{
         
     } catch (error) {
          console.log(error.message);
+         next(error);
     }
 }
 
 
-const contactPage = async(req,res)=>{
+const contactPage = async(req, res, next)=>{
     try{
 
         res.render('contact');
 
     } catch (error) {
         console.log(error.message);
+        next(error);
     }
 }
 
-const blogPage = async(req,res)=>{
+const blogPage = async(req, res, next)=>{
     try {
         
         res.render('blog');
 
     } catch (error) {
         console.log(error.message);
+        next(error);
     }
 }
 
-const blogDetailPage = async(req,res)=>{
+const blogDetailPage = async(req, res, next)=>{
     try {
         
         res.render('blog-detail');
 
     } catch (error) {
         console.log(error.message);
+        next(error);
     }
 }
 
-const aboutPage = async(req,res)=>{
+const aboutPage = async(req, res, next)=>{
     try {
         
         res.render('about');
 
     } catch (error) {
         console.log(error.message);
+        next(error);
     }
 }
 
@@ -161,96 +166,7 @@ const checkOfferForProduct = async (product) => {
 };
 
 
-const homePage = async (req, res) => {
-    try {
-        // Pagination
-        const page = parseInt(req.query.page) || 1;
-        const limit = parseInt(req.query.limit) || 10;
-        const skip = (page - 1) * limit;
-
-        // Fetch filter options
-        const colors = await Product.distinct("color");
-        const brands = await Product.distinct("brand");
-
-        // Build query object for filtering
-        let query = { isDeleted: false };
-        if (req.query.category) {
-            query.category = req.query.category;
-        }
-        if (req.query.color) {
-            query.color = req.query.color;
-        }
-        if (req.query.brand) {
-            query.brand = req.query.brand;
-        }
-
-        // Fetch products based on query
-        let products = await Product.find(query).populate('category').skip(skip).limit(limit);
-
-        // Handle sorting
-        if (req.query.sort) {
-            switch (req.query.sort) {
-                case 'newness':
-                    products = products.sort((a, b) => b.createdAt - a.createdAt);
-                    break;
-                case 'price-asc':
-                    products = products.sort((a, b) => a.price - b.price);
-                    break;
-                case 'price-desc':
-                    products = products.sort((a, b) => b.price - a.price);
-                    break;
-                default:
-                    break;
-            }
-        }
-
-        // Fetch categories
-        const categories = await Category.find({ is_delete: false });
-
-        // Check for offers and update product data
-        for (let i = 0; i < products.length; i++) {
-            const offerDetails = await checkOfferForProduct(products[i]);
-            products[i] = {
-                ...products[i]._doc,
-                discount: offerDetails.discount,
-                discountPrice: offerDetails.discountPrice,
-                specialOffer: offerDetails.specialOffer
-            };
-        }
-
-        // Count total products for pagination
-        const totalProducts = await Product.countDocuments(query);
-        const totalPages = Math.ceil(totalProducts / limit);
-
-        // Fetch user cart
-        const userId = req.session.user_id;
-        const userCarts = await Cart.findOne({ userId }).populate('cartItems.productId');
-        let totalProductsInCart = 0;
-        if (userCarts) {
-            totalProductsInCart = userCarts.cartItems.reduce((total, item) => total + item.quantity, 0);
-        }
-
-        // Render the index page with the fetched data
-        res.render('index', {
-            categories,
-            products,
-            totalProductsInCart,
-            userCart: userCarts,
-            currentPage: page,
-            totalPages,
-            limit,
-            colors,
-            brands
-        });
-
-    } catch (error) {
-        console.log('Error in homePage controller:', error.message);
-        res.status(500).send('Internal Server Error');
-    }
-};
-
-
-// const homePage = async (req, res) => {
+// const homePage = async (req, res, next) => {
 //     try {
 //         // Pagination
 //         const page = parseInt(req.query.page) || 1;
@@ -296,6 +212,17 @@ const homePage = async (req, res) => {
 //         // Fetch categories
 //         const categories = await Category.find({ is_delete: false });
 
+//         // Check for offers and update product data
+//         for (let i = 0; i < products.length; i++) {
+//             const offerDetails = await checkOfferForProduct(products[i]);
+//             products[i] = {
+//                 ...products[i]._doc,
+//                 discount: offerDetails.discount,
+//                 discountPrice: offerDetails.discountPrice,
+//                 specialOffer: offerDetails.specialOffer
+//             };
+//         }
+
 //         // Count total products for pagination
 //         const totalProducts = await Product.countDocuments(query);
 //         const totalPages = Math.ceil(totalProducts / limit);
@@ -324,22 +251,128 @@ const homePage = async (req, res) => {
 //     } catch (error) {
 //         console.log('Error in homePage controller:', error.message);
 //         res.status(500).send('Internal Server Error');
+//         next(error);
+//     }
+// };
+
+
+
+
+const fetchPageData = async (req) => {
+    // Pagination
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    // Fetch filter options
+    const colors = await Product.distinct("color");
+    const brands = await Product.distinct("brand");
+
+    // Build query object for filtering
+    let query = { isDeleted: false };
+    if (req.query.category) {
+        query.category = req.query.category;
+    }
+    if (req.query.color) {
+        query.color = req.query.color;
+    }
+    if (req.query.brand) {
+        query.brand = req.query.brand;
+    }
+
+    // Fetch products based on query
+    let products = await Product.find(query).populate('category').skip(skip).limit(limit);
+
+    // Handle sorting
+    if (req.query.sort) {
+        switch (req.query.sort) {
+            case 'newness':
+                products = products.sort((a, b) => b.createdAt - a.createdAt);
+                break;
+            case 'price-asc':
+                products = products.sort((a, b) => a.price - b.price);
+                break;
+            case 'price-desc':
+                products = products.sort((a, b) => b.price - a.price);
+                break;
+            default:
+                break;
+        }
+    }
+
+    // Fetch categories
+    const categories = await Category.find({ is_delete: false });
+
+    // Check for offers and update product data
+    for (let i = 0; i < products.length; i++) {
+        const offerDetails = await checkOfferForProduct(products[i]);
+        products[i] = {
+            ...products[i]._doc,
+            discount: offerDetails.discount,
+            discountPrice: offerDetails.discountPrice,
+            specialOffer: offerDetails.specialOffer
+        };
+    }
+
+    // Count total products for pagination
+    const totalProducts = await Product.countDocuments(query);
+    const totalPages = Math.ceil(totalProducts / limit);
+
+    // Fetch user cart
+    const userId = req.session.user_id;
+    const userCarts = await Cart.findOne({ userId }).populate('cartItems.productId');
+    let totalProductsInCart = 0;
+    if (userCarts) {
+        totalProductsInCart = userCarts.cartItems.reduce((total, item) => total + item.quantity, 0);
+    }
+
+    return {
+        categories,
+        products,
+        totalProductsInCart,
+        userCart: userCarts,
+        currentPage: page,
+        totalPages,
+        limit,
+        colors,
+        brands
+    };
+};
+
+const homePage = async (req, res, next) => {
+    try {
+        const pageData = await fetchPageData(req);
+        res.render('index', pageData);
+    } catch (error) {
+        console.log('Error in homePage controller:', error.message);
+        res.status(500).send('Internal Server Error');
+        next(error);
+    }
+};
+
+const productPage = async (req, res, next) => {
+    try {
+        const pageData = await fetchPageData(req);
+        res.render('product', pageData);
+    } catch (error) {
+        console.log('Error in productPage controller:', error.message);
+        res.status(500).send('Internal Server Error');
+        next(error);
+    }
+};
+
+// const productPage = async(req, res, next)=>{
+//     try {
+
+//         res.render('product')
+        
+//     } catch (error) {
+//         console.log(error.message);
+//         next(error);
 //     }
 // }
 
-
-
-const productPage = async(req,res)=>{
-    try {
-
-        res.render('product')
-        
-    } catch (error) {
-        console.log(error.message);
-    }
-}
-
-const productDetail = async (req, res) => {
+const productDetail = async (req, res, next) => {
     try {
         const productId = req.params.id;
         const product = await Product.findById(productId).populate('category');
@@ -370,7 +403,8 @@ const productDetail = async (req, res) => {
         });
     } catch (error) {
         console.log(error.message);
-        res.status(500).render('error', { message: 'Internal Server Error' });
+        // res.status(500).render('error', { message: 'Internal Server Error' });
+        next(error);
     }
 };
 
@@ -396,7 +430,7 @@ const productDetail = async (req, res) => {
 // };
 
 
-const cartPage = async(req,res)=>{
+const cartPage = async(req, res, next)=>{
     try {
        
         const userId = req.session.user_id;
@@ -405,10 +439,11 @@ const cartPage = async(req,res)=>{
         res.render('shoping-cart', { userCart , product})
     } catch (error) {
         console.error(error.message);
+        next(error);
     }
 }
 
-const registrationPage = async(req,res)=>{
+const registrationPage = async(req, res, next)=>{
     try {
         if(req.session.isUserAuthenticated){
             res.redirect('/index.html');
@@ -418,10 +453,11 @@ const registrationPage = async(req,res)=>{
         }
     } catch (error) {
         console.log(error.message);
+        next(error);
     }
 }
 
-const loginPage = async(req,res)=>{
+const loginPage = async(req, res, next)=>{
     try {
         if(req.session.isUserAuthenticated){
             res.redirect('/index.html');
@@ -431,10 +467,11 @@ const loginPage = async(req,res)=>{
         }
     } catch (error) {
         console.log(error.message);
+        next(error);
     }
 }
 
-const otpPage = async(req,res)=>{
+const otpPage = async(req, res, next)=>{
     try {
         if(req.session.isUserAuthenticated){
             res.redirect('/index.html');
@@ -443,10 +480,11 @@ const otpPage = async(req,res)=>{
         }
     } catch (error) {
         console.log(error.message);
+        next(error);
     }
 }
 
-const otpVerification = async(req,res)=>{
+const otpVerification = async(req, res, next)=>{
     try {
          
         const { otp1, otp2, otp3, otp4 } = req.body;
@@ -476,20 +514,22 @@ const otpVerification = async(req,res)=>{
         
     } catch (error) {
         console.log(error.message);
+        next(error);
     }
 }
 
-const resentOTP = async(req,res)=>{
+const resentOTP = async(req, res, next)=>{
     try {
         await reSendEmail(req,res)
 
     } catch (error) {
         console.log(error.message);
+        next(error);
     }
 }
 
 
-const verifyLogin = async(req,res)=>{
+const verifyLogin = async(req, res, next)=>{
     try {
         const email = req.body.email;
         const password = req.body.password;
@@ -521,10 +561,11 @@ const verifyLogin = async(req,res)=>{
 
     } catch (error) {
         console.log(error.message);
+        next(error);
     }
 }
 
-const userLogout = async(req,res)=>{
+const userLogout = async(req, res, next)=>{
     try {
         
         req.session.destroy();
@@ -532,10 +573,11 @@ const userLogout = async(req,res)=>{
 
     } catch (error) {
         console.log(error.message);
+        next(error);
     }
 }
 
-const userProfile = async (req, res) => {
+const userProfile = async (req, res, next) => {
     try {
 
         const userId = req.session.user_id;
@@ -551,10 +593,11 @@ const userProfile = async (req, res) => {
     } catch (error) {
         console.log(error.message);
         res.status(500).send('Internal Server Error');
+        next(error);
     }
 }
 
-const updateUserProfile = async (req, res) => {
+const updateUserProfile = async (req, res, next) => {
     try {
         const userId = req.session.user_id;
         const { fname, sname, username, number } = req.body;
@@ -574,16 +617,16 @@ const updateUserProfile = async (req, res) => {
         // Send a success response
         res.status(200).json({ message: "User profile updated successfully." });
     } catch (error) {
-        // Handle errors
         console.error(error);
         res.status(500).json({ error: "Internal Server Error" });
+        next(error);
     }
 };
 
 
 
 
-const changePassword = async (req, res) => {
+const changePassword = async (req, res, next) => {
     try {
         const userId = req.session.user_id;
         const { currentPassword, newPassword } = req.body;
@@ -602,15 +645,14 @@ const changePassword = async (req, res) => {
 
         res.status(200).json({ message: "Password changed successfully." });
     } catch (error) {
-
         console.error(error);
         res.status(500).json({ error: "Internal Server Error" });
-
+        next(error);
     }
 };
 
 
-const manageAddress = async(req,res)=>{
+const manageAddress = async(req, res, next)=>{
     try {
         const userId = req.session.user_id;
         const user = await User.findById(userId);
@@ -622,11 +664,12 @@ const manageAddress = async(req,res)=>{
         res.render('manageAddress', { user: user, addresses: addresses ,index:index});
     } catch (error) {
         console.log(error.message);
+        next(error);
     }
 }
 
 
-const newAddress = async (req, res) => {
+const newAddress = async (req, res, next) => {
     try {
         const id = req.session.user_id;
 
@@ -661,11 +704,12 @@ const newAddress = async (req, res) => {
     } catch (error) {
         console.log(error.message);
         res.sendStatus(500); 
+        next(error);
     }
 }
 
 
-const updateAddress = async (req, res) => {
+const updateAddress = async (req, res, next) => {
     try {
         const id = req.session.user_id;
         const index = req.params.index;
@@ -689,11 +733,12 @@ const updateAddress = async (req, res) => {
     } catch (error) {
         console.log(error.message);
         res.sendStatus(500);
+        next(error);
     }
 }
 
 
-const deleteAddress = async (req, res) => {
+const deleteAddress = async (req, res, next) => {
     try {
         const userId = req.session.user_id;
         const addressId = req.params.addressId;
@@ -718,10 +763,11 @@ const deleteAddress = async (req, res) => {
     } catch (error) {
         console.log(error.message);
         res.sendStatus(500);
+        next(error);
     }
 }
 
-const addToCart = async (req, res) => {
+const addToCart = async (req, res, next) => {
     try {
         const userId = req.session.user_id;
         const productId = req.body.productId;
@@ -770,6 +816,7 @@ const addToCart = async (req, res) => {
     } catch (error) {
         console.error('Error adding item to cart:', error.message);
         return res.status(500).json({ error: 'Internal server error' });
+        next(error);
     }
 };
 
@@ -805,7 +852,7 @@ const addToCart = async (req, res) => {
 //     }
 // };
 
-const updateQuantity = async (req, res) => {
+const updateQuantity = async (req, res, next) => {
     try {
         const userId = req.session.user_id;
         const productId = req.query.productId;
@@ -833,11 +880,12 @@ const updateQuantity = async (req, res) => {
 
     } catch (error) {
         console.log(error.message);
-        res.status(500).json({ error: 'Internal server error' });
+        res.status(500).json({ error: 'Internal server error'});
+        next(error);
     }
 }
 
-const removeFromCart = async(req,res)=>{
+const removeFromCart = async(req, res, next)=>{
     try {
         const productId = req.query.productId
         const userId = req.session.user_id
@@ -853,18 +901,28 @@ const removeFromCart = async(req,res)=>{
 
     } catch (error) {
         console.log(error.message); 
-        res.status(500).json({ error: 'Internal server error' });      
+        res.status(500).json({ error: 'Internal server error'});
+        next(error);      
     }
 }
 
 
-const loadCheckout = async(req,res)=>{
+
+const loadCheckout = async (req, res, next) => {
     try {
-        const userId = req.session.user_id
-        const userAddress = await Address.find({ user_id:userId }); 
-        const cart = await Cart.findOne({ userId:userId }).populate('cartItems.productId');
+        const userId = req.session.user_id;
+
+        // Fetch user addresses
+        const userAddress = await Address.find({ user_id: userId });
+
+        // Fetch user's cart with populated product and category details
+        const cart = await Cart.findOne({ userId: userId }).populate({
+            path: 'cartItems.productId',
+            populate: { path: 'category' }
+        });
+
+        // Fetch active coupons
         const coupons = await Coupon.find({ status: true });
-        
 
         if (!cart) {
             // Handle case where cart doesn't exist
@@ -872,33 +930,180 @@ const loadCheckout = async(req,res)=>{
             return;
         }
 
-        res.render('checkoutPage', { userAddress, cart,coupons })
+        // Calculate subtotal, offer discount, shipping cost, and total
+        let subtotal = 0;
+        let offerDiscount = 0;
+
+        // Iterate through each item in the cart
+        for (const item of cart.cartItems) {
+            const product = item.productId;
+            const { discountPrice, discount } = await checkOfferForProduct(product);
+            const itemTotal = discountPrice * item.quantity;
+
+            // Add to subtotal and offer discount
+            subtotal += itemTotal;
+            offerDiscount += (product.price - discountPrice) * item.quantity;
+        }
+
+        const shippingCost = 60;
+        const total = subtotal + shippingCost;
+
+        // Render checkout page with calculated values
+        res.render('checkoutPage', {
+            userAddress,
+            cart,
+            coupons,
+            subtotal: subtotal.toFixed(2),
+            offerDiscount: offerDiscount.toFixed(2),
+            shippingCost: shippingCost.toFixed(2),
+            total: total.toFixed(2)
+        });
+
     } catch (error) {
         console.log(error.message);
+        next(error);
     }
-}
+};
+
+
+
+
+// const loadCheckout = async(req,res)=>{
+//     try {
+//         const userId = req.session.user_id
+//         const userAddress = await Address.find({ user_id:userId }); 
+//         const cart = await Cart.findOne({ userId:userId }).populate('cartItems.productId');
+//         const coupons = await Coupon.find({ status: true });
+        
+
+//         if (!cart) {
+//             // Handle case where cart doesn't exist
+//             res.render('checkoutPage', { userAddress, cart: null });
+//             return;
+//         }
+
+//         res.render('checkoutPage', { userAddress, cart,coupons })
+//     } catch (error) {
+//         console.log(error.message);
+//     }
+// }
 
 
 // index search
 
+// const searchProducts = async (req, res) => {
+//     try {
+//         const query = req.query.query;
+//         console.log('Query:', query);
+
+//         // Pagination
+//         const page = parseInt(req.query.page) || 1;
+//         const limit = parseInt(req.query.limit) || 10;
+//         const skip = (page - 1) * limit;
+
+//         // Fetch filter options
+//         const colors = await Product.distinct("color");
+//         const brands = await Product.distinct("brand");
+
+//         if (typeof query !== 'string') {
+//             return res.status(400).send('Query parameter must be a string');
+//         }
+
+//         // Build query object for searching and filtering
+//         let searchQuery = {
+//             productName: { $regex: query, $options: 'i' },
+//             isDeleted: false
+//         };
+//         if (req.query.category) {
+//             searchQuery.category = req.query.category;
+//         }
+//         if (req.query.color) {
+//             searchQuery.color = req.query.color;
+//         }
+//         if (req.query.brand) {
+//             searchQuery.brand = req.query.brand;
+//         }
+
+//         // Sort option
+//         let sortOption = {};
+//         if (req.query.sort) {
+//             switch (req.query.sort) {
+//                 case 'newness':
+//                     sortOption = { createdAt: -1 };
+//                     break;
+//                 case 'price-asc':
+//                     sortOption = { price: 1 };
+//                     break;
+//                 case 'price-desc':
+//                     sortOption = { price: -1 };
+//                     break;
+//                 default:
+//                     break;
+//             }
+//         }
+
+//         // Fetch products based on search and filtering query with sorting
+//         let products = await Product.find(searchQuery).populate('category').sort(sortOption).skip(skip).limit(limit);
+
+//         // Fetch filter options and user cart
+//         const userId = req.session.user_id;
+//         const categories = await Category.find({ is_delete: false });
+//         const userCarts = await Cart.findOne({ userId }).populate('cartItems.productId');
+//         let totalProductsInCart = 0;
+//         if (userCarts) {
+//             totalProductsInCart = userCarts.cartItems.reduce((total, item) => total + item.quantity, 0);
+//         }
+
+//         // Count total products for pagination
+//         const totalProducts = await Product.countDocuments(searchQuery);
+//         const totalPages = Math.ceil(totalProducts / limit);
+
+//         // Render the search results page with the fetched data
+//         res.render('index', {
+//             totalProductsInCart,
+//             colors,
+//             brands,
+//             userCart: userCarts,
+//             products: products,
+//             categories: categories,
+//             currentPage: page,
+//             totalPages,
+//             limit
+//         });
+//     } catch (error) {
+//         console.error('Error during product search:', error);
+//         res.status(500).send('Internal Server Error');
+//     }
+// };
+
+
+
 const searchProducts = async (req, res) => {
     try {
         const query = req.query.query;
+        console.log('Query:', query);
 
-        // Pagination
+        // Check if query parameter is missing or not a string
+        if (!query || typeof query !== 'string') {
+            return res.status(400).send('Query parameter must be a string');
+        }
+
+        // Pagination setup
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 10;
         const skip = (page - 1) * limit;
 
-        // Fetch filter options
+        // Fetch distinct filter options
         const colors = await Product.distinct("color");
         const brands = await Product.distinct("brand");
 
-        // Build query object for searching and filtering
+        // Build search query object
         let searchQuery = {
             productName: { $regex: query, $options: 'i' },
             isDeleted: false
         };
+
+        // Apply additional filters if provided
         if (req.query.category) {
             searchQuery.category = req.query.category;
         }
@@ -909,7 +1114,7 @@ const searchProducts = async (req, res) => {
             searchQuery.brand = req.query.brand;
         }
 
-        // Sort option
+        // Sorting options
         let sortOption = {};
         if (req.query.sort) {
             switch (req.query.sort) {
@@ -928,43 +1133,45 @@ const searchProducts = async (req, res) => {
         }
 
         // Fetch products based on search and filtering query with sorting
-        let products = await Product.find(searchQuery).populate('category').sort(sortOption).skip(skip).limit(limit);
+        let products = await Product.find(searchQuery)
+                                    .populate('category')
+                                    .sort(sortOption)
+                                    .skip(skip)
+                                    .limit(limit);
 
-        // Fetch filter options and user cart
+        // Fetch categories and user cart
         const userId = req.session.user_id;
         const categories = await Category.find({ is_delete: false });
-        const userCarts = await Cart.findOne({ userId }).populate('cartItems.productId');
+        const userCart = await Cart.findOne({ userId }).populate('cartItems.productId');
+
+        // Calculate total products in user's cart
         let totalProductsInCart = 0;
-        if (userCarts) {
-            totalProductsInCart = userCarts.cartItems.reduce((total, item) => total + item.quantity, 0);
+        if (userCart) {
+            totalProductsInCart = userCart.cartItems.reduce((total, item) => total + item.quantity, 0);
         }
 
-        // Count total products for pagination
+        // Count total matching products for pagination
         const totalProducts = await Product.countDocuments(searchQuery);
         const totalPages = Math.ceil(totalProducts / limit);
 
-        // Render the search results page with the fetched data
+        // Render the search results page with fetched data
         res.render('index', {
             totalProductsInCart,
             colors,
             brands,
-            userCart: userCarts,
-            products: products,
-            categories: categories,
+            userCart,
+            products,
+            categories,
             currentPage: page,
             totalPages,
             limit
         });
+
     } catch (error) {
         console.error('Error during product search:', error);
         res.status(500).send('Internal Server Error');
     }
 };
-
-
-  
-
-
 
 
 

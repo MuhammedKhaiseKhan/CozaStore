@@ -146,11 +146,7 @@ body {
                           
                           <h6 class="font-weight-normal mb-0">All systems are running smoothly!</h6>
                         </div>
-                        <div class="col-12 col-xl-4">
-                          <div class="justify-content-end d-flex">
-                            <div id="currentDate"><i class="fa-solid fa-calendar-days"></i></div>
-                          </div>
-                        </div>
+                        
                       </div>
                     </div>
                   </div>
@@ -202,27 +198,45 @@ body {
               
                     <!-- Additional Charts -->
                     <div class="container-fluid pt-4 px-4">
-                      <div class="row g-4">
-                          <div class="col-sm-12 col-xl-6">
-                              <div class="bg-light text-center rounded p-4">
-                                  <div class="d-flex align-items-center justify-content-between mb-4">
-                                      <h6 class="mb-0">Best Selling Categories</h6>
-                                      
-                                  </div>
-                                  <canvas id="best-selling-categories"></canvas>
-                              </div>
-                          </div>
-                          <div class="col-sm-12 col-xl-6">
-                              <div class="bg-light text-center rounded p-4">
-                                  <div class="d-flex align-items-center justify-content-between mb-4">
-                                      <h6 class="mb-0">Best Selling Products</h6>
-                                      
-                                  </div>
-                                  <canvas id="best-selling-products"></canvas>
-                              </div>
-                          </div>
-                      </div>
-                  </div>
+                        <div class="row g-4">
+                            <div class="col-sm-12 col-xl-6">
+                                <div class="bg-light text-center rounded p-4">
+                                    <div class="d-flex align-items-center justify-content-between mb-4">
+                                        <h6 class="mb-0">Best Selling Categories</h6>
+                                        <div class="dropdown">
+                                            <button class="btn btn-secondary dropdown-toggle" type="button" id="categoryChartFilter" data-bs-toggle="dropdown" aria-expanded="false">
+                                                Filter
+                                            </button>
+                                            <ul class="dropdown-menu" aria-labelledby="categoryChartFilter">
+                                                <li><button class="dropdown-item" type="button" data-chart="category" data-filter="weekly">Weekly</button></li>
+                                                <li><button class="dropdown-item" type="button" data-chart="category" data-filter="monthly">Monthly</button></li>
+                                                <li><button class="dropdown-item" type="button" data-chart="category" data-filter="yearly">Yearly</button></li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <canvas id="best-selling-categories"></canvas>
+                                </div>
+                            </div>
+                            <div class="col-sm-12 col-xl-6">
+                                <div class="bg-light text-center rounded p-4">
+                                    <div class="d-flex align-items-center justify-content-between mb-4">
+                                        <h6 class="mb-0">Best Selling Products</h6>
+                                        <div class="dropdown">
+                                            <button class="btn btn-secondary dropdown-toggle" type="button" id="productChartFilter" data-bs-toggle="dropdown" aria-expanded="false">
+                                                Filter
+                                            </button>
+                                            <ul class="dropdown-menu" aria-labelledby="productChartFilter">
+                                                <li><button class="dropdown-item" type="button" data-chart="product" data-filter="weekly">Weekly</button></li>
+                                                <li><button class="dropdown-item" type="button" data-chart="product" data-filter="monthly">Monthly</button></li>
+                                                <li><button class="dropdown-item" type="button" data-chart="product" data-filter="yearly">Yearly</button></li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <canvas id="best-selling-products"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
               
                     <!-- Top Selling Section -->
                     
@@ -403,7 +417,7 @@ body {
                 totalDiscount += (couponDiscount + offerDiscount);
             %>
             <tr>
-                <td><%= salesReport[i]._id %></td>
+                <td><%= salesReport[i].orderID %></td>
                 <td><%= new Date(salesReport[i].orderDate).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }) %></td>
                 <td><%= salesReport[i].address.Name %></td>
                 <td>
@@ -411,10 +425,10 @@ body {
                     <p><%= salesReport[i].orderItems[j].productName %></p>
                     <% } %>
                 </td>
-                <td>₹<%= salesReport[i].totalAmount %></td>
+                <td>₹<%= (salesReport[i].totalAmount+offerDiscount+couponDiscount) - 60 %></td>
                 <td>₹<%= couponDiscount %></td>
                 <td>₹<%= offerDiscount %></td>
-                <% let price =salesReport[i].totalAmount - couponDiscount - offerDiscount %>
+                <% let price =salesReport[i].totalAmount %>
                 <td>₹<%= Math.floor(price) %></td>
                 <td><%= salesReport[i].orderStatus %></td>
             </tr>
@@ -531,7 +545,7 @@ body {
 
                 const row = `
                     <tr>
-                        <td>${report._id}</td>
+                        <td>${report.orderID}</td>
                         <td>${new Date(report.orderDate).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}</td>
                         <td>${report.address.Name}</td>
                         <td>${report.orderItems.map(item => `<p>${item.productName}</p>`).join('')}</td>
@@ -680,17 +694,17 @@ function showTable(type) {
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     // Data for best selling categories
-    const categoryData = <%- JSON.stringify(topCategories) %>;
-    const categoryLabels = categoryData.map(item => item._id);
-    const categoryCounts = categoryData.map(item => item.count);
+    let categoryData = <%- JSON.stringify(topCategories) %>;
+    let categoryLabels = categoryData.map(item => item._id);
+    let categoryCounts = categoryData.map(item => item.count);
 
     // Data for best selling products
-    const productData = <%- JSON.stringify(topProduct) %>;
-    const productLabels = productData.map(item => item._id);
-    const productCounts = productData.map(item => item.count);
+    let productData = <%- JSON.stringify(topProduct) %>;
+    let productLabels = productData.map(item => item._id);
+    let productCounts = productData.map(item => item.count);
 
     // Create chart for best selling categories
-    new Chart(document.getElementById('best-selling-categories'), {
+    let categoryChart = new Chart(document.getElementById('best-selling-categories'), {
         type: 'bar',
         data: {
             labels: categoryLabels,
@@ -713,7 +727,7 @@ function showTable(type) {
     });
 
     // Create chart for best selling products
-    new Chart(document.getElementById('best-selling-products'), {
+    let productChart = new Chart(document.getElementById('best-selling-products'), {
         type: 'bar',
         data: {
             labels: productLabels,
@@ -734,8 +748,51 @@ function showTable(type) {
             }
         }
     });
+
+    // Filter functionality
+    document.querySelectorAll('.dropdown-item').forEach(item => {
+        item.addEventListener('click', function(e) {
+            e.preventDefault();
+            const filter = this.getAttribute('data-filter');
+            const chart = this.getAttribute('data-chart');
+            console.log(`Filter: ${filter}, Chart: ${chart}`);
+            updateChart(chart, filter);
+        });
+    });
+
+    function updateChart(chartType, filter) {
+    console.log(`Updating ${chartType} chart with ${filter} filter`);
+    const scrollPosition = window.pageYOffset;
+    console.log(`Scroll position before update: ${scrollPosition}`);
+
+    fetch(`/admin/getFilteredChartData?chart=${chartType}&filter=${filter}`)
+        .then(response => response.json())
+        .then(data => {
+            console.log(`Received data for ${chartType} chart:`, data);
+            let chart;
+            if (chartType === 'category') {
+                chart = categoryChart;
+            } else if (chartType === 'product') {
+                chart = productChart;
+            }
+            
+            chart.data.labels = data.labels;
+            chart.data.datasets[0].data = data.counts;
+            chart.update('none');
+
+            console.log(`Scroll position after update: ${window.pageYOffset}`);
+            if (window.pageYOffset !== scrollPosition) {
+                console.log('Scroll position changed, resetting...');
+                window.scrollTo(0, scrollPosition);
+            }
+        })
+        .catch(error => {
+            console.error('Error updating chart:', error);
+        });
+}
+
+
 </script>
-   
 
 
  <%- include('../layouts/adminLayout/footer.ejs')%>
