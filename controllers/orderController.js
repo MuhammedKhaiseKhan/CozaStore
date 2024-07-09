@@ -925,37 +925,75 @@ const approveReturn = async (req, res, next) => {
 const loadWallet = async (req, res, next) => {
     try {
         const userId = req.session.user_id; 
+        const page = parseInt(req.query.page) || 1; 
+        const limit = parseInt(req.query.limit) || 10; 
 
-        
         const user = await User.findById(userId);
         if (!user) {
             return res.status(404).send('User not found');
         }
 
-        
-        // const wallet = await Wallet.findOne({ userId: user._id });
-        // if (!wallet) {
-        //     return res.status(404).send('Wallet not found');
-        // }
-
         const wallet = await Wallet.findOneAndUpdate(
-            { userId: user._id }, // Query condition
-            { $setOnInsert: { userId: user._id } }, 
+            { userId: user._id }, 
+            { $setOnInsert: { userId: user._id } },
             { new: true, upsert: true } 
         );
-        
+
         if (!wallet) {
             return res.status(404).send('Wallet not found');
         }
 
-        
-        res.render('wallet', { user, wallet });
+        const totalTransactions = wallet.transactionHistory.length;
+        const totalPages = Math.ceil(totalTransactions / limit);
+
+        const startIndex = (page - 1) * limit;
+        const endIndex = Math.min(startIndex + limit, totalTransactions);
+        const transactions = wallet.transactionHistory.slice(startIndex, endIndex);
+
+        res.render('wallet', {
+            user,
+            wallet: {
+                ...wallet.toObject(),
+                transactionHistory: transactions
+            },
+            currentPage: page,
+            totalPages: totalPages
+        });
     } catch (error) {
         console.error('Error loading wallet:', error);
         res.status(500).send('Internal Server Error');
         next(error);
     }
 };
+
+// const loadWallet = async (req, res, next) => {
+//     try {
+//         const userId = req.session.user_id; 
+
+        
+//         const user = await User.findById(userId);
+//         if (!user) {
+//             return res.status(404).send('User not found');
+//         }
+
+//         const wallet = await Wallet.findOneAndUpdate(
+//             { userId: user._id }, // Query condition
+//             { $setOnInsert: { userId: user._id } }, 
+//             { new: true, upsert: true } 
+//         );
+        
+//         if (!wallet) {
+//             return res.status(404).send('Wallet not found');
+//         }
+
+        
+//         res.render('wallet', { user, wallet });
+//     } catch (error) {
+//         console.error('Error loading wallet:', error);
+//         res.status(500).send('Internal Server Error');
+//         next(error);
+//     }
+// };
 
 
 module.exports = {

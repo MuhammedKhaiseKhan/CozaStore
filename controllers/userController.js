@@ -1077,6 +1077,9 @@ const loadCheckout = async (req, res, next) => {
 // };
 
 
+const escapeRegex = (string) => {
+    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+};
 
 const searchProducts = async (req, res) => {
     try {
@@ -1087,6 +1090,9 @@ const searchProducts = async (req, res) => {
         if (!query || typeof query !== 'string') {
             return res.status(400).send('Query parameter must be a string');
         }
+
+        // Escape special characters in the query
+        const sanitizedQuery = escapeRegex(query);
 
         // Pagination setup
         const page = parseInt(req.query.page) || 1;
@@ -1099,7 +1105,11 @@ const searchProducts = async (req, res) => {
 
         // Build search query object
         let searchQuery = {
-            productName: { $regex: query, $options: 'i' },
+            $or: [
+                { productName: { $regex: sanitizedQuery, $options: 'i' } },
+                { variantName: { $regex: sanitizedQuery, $options: 'i' } },
+                { categoryName: { $regex: sanitizedQuery, $options: 'i' } },
+            ],
             isDeleted: false
         };
 
@@ -1172,6 +1182,102 @@ const searchProducts = async (req, res) => {
         res.status(500).send('Internal Server Error');
     }
 };
+
+
+// const searchProducts = async (req, res) => {
+//     try {
+//         const query = req.query.query;
+//         console.log('Query:', query);
+
+//         // Check if query parameter is missing or not a string
+//         if (!query || typeof query !== 'string') {
+//             return res.status(400).send('Query parameter must be a string');
+//         }
+
+//         // Pagination setup
+//         const page = parseInt(req.query.page) || 1;
+//         const limit = parseInt(req.query.limit) || 10;
+//         const skip = (page - 1) * limit;
+
+//         // Fetch distinct filter options
+//         const colors = await Product.distinct("color");
+//         const brands = await Product.distinct("brand");
+
+//         // Build search query object
+//         let searchQuery = {
+//             productName: { $regex: query, $options: 'i' },
+//             isDeleted: false
+//         };
+
+//         // Apply additional filters if provided
+//         if (req.query.category) {
+//             searchQuery.category = req.query.category;
+//         }
+//         if (req.query.color) {
+//             searchQuery.color = req.query.color;
+//         }
+//         if (req.query.brand) {
+//             searchQuery.brand = req.query.brand;
+//         }
+
+//         // Sorting options
+//         let sortOption = {};
+//         if (req.query.sort) {
+//             switch (req.query.sort) {
+//                 case 'newness':
+//                     sortOption = { createdAt: -1 };
+//                     break;
+//                 case 'price-asc':
+//                     sortOption = { price: 1 };
+//                     break;
+//                 case 'price-desc':
+//                     sortOption = { price: -1 };
+//                     break;
+//                 default:
+//                     break;
+//             }
+//         }
+
+//         // Fetch products based on search and filtering query with sorting
+//         let products = await Product.find(searchQuery)
+//                                     .populate('category')
+//                                     .sort(sortOption)
+//                                     .skip(skip)
+//                                     .limit(limit);
+
+//         // Fetch categories and user cart
+//         const userId = req.session.user_id;
+//         const categories = await Category.find({ is_delete: false });
+//         const userCart = await Cart.findOne({ userId }).populate('cartItems.productId');
+
+//         // Calculate total products in user's cart
+//         let totalProductsInCart = 0;
+//         if (userCart) {
+//             totalProductsInCart = userCart.cartItems.reduce((total, item) => total + item.quantity, 0);
+//         }
+
+//         // Count total matching products for pagination
+//         const totalProducts = await Product.countDocuments(searchQuery);
+//         const totalPages = Math.ceil(totalProducts / limit);
+
+//         // Render the search results page with fetched data
+//         res.render('index', {
+//             totalProductsInCart,
+//             colors,
+//             brands,
+//             userCart,
+//             products,
+//             categories,
+//             currentPage: page,
+//             totalPages,
+//             limit
+//         });
+
+//     } catch (error) {
+//         console.error('Error during product search:', error);
+//         res.status(500).send('Internal Server Error');
+//     }
+// };
 
 
 

@@ -82,11 +82,16 @@
 							<% } else { %>
 								₹<%= product.price %>
 							<% } %>
+							
 						</span>
 
 						<p class="stext-102 cl3 p-t-23">
 							<%= product.description %>
 						</p>
+						<br>
+						<% if (product.inStock < 1) { %>
+							<span class="out-of-stock text-danger"><h2 style="font-weight: bold">Out of Stock</h2></span>
+							<% } %>
 						
 						
 						<!--  -->

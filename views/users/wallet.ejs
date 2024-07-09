@@ -4,6 +4,9 @@
 <link rel="stylesheet" href="/css/style3.css">
 
 <style>
+.animsition{
+    height: auto;
+}
 .walletCard {
     background: linear-gradient(135deg, #6b73ff, #000dff);
     border-radius: 15px;
@@ -79,9 +82,35 @@
 .table tbody tr:hover {
     background-color: #f1f1f1;
 }
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.pagination a {
+    margin: 0 5px;
+    padding: 8px 16px;
+    text-decoration: none;
+    color: #007bff;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    transition: background-color 0.3s;
+}
+
+.pagination a:hover {
+    background-color: #007bff;
+    color: #ffffff;
+}
+
+.pagination .active {
+    background-color: #007bff;
+    color: #ffffff;
+    border-color: #007bff;
+}
 </style>
 
-<!-- End Banner Area -->
 <div class="container">
     <div class="row" style="margin-top: 134px;">
         <div class="col-xl-3 col-lg-4 col-md-5">
@@ -152,9 +181,9 @@
                           </tr>
                         </thead>
                         <tbody>
-                            <% for (let i = wallet.transactionHistory.length - 1; i >= 0; i--) { %> 
+                            <% for (let i = 0; i < wallet.transactionHistory.length; i++) { %> 
                                 <tr>
-                                  <th scope="row"><%= wallet.transactionHistory.length - i %></th>
+                                  <th scope="row"><%= (currentPage - 1) * 10 + i + 1 %></th>
                                   <td><%= wallet.transactionHistory[i].amount %></td>
                                   <td><%= wallet.transactionHistory[i].PaymentType %></td>
                                   <td><%= new Date(wallet.transactionHistory[i].date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }) %></td>
@@ -165,6 +194,17 @@
                       <% }else { %> 
                         <h3 class="text-danger" style="display: flex; align-items: center; justify-content: center;"> No Transactions!</h3>
                     <% } %>
+                    <div class="pagination">
+                        <% if (currentPage > 1) { %>
+                            <a href="?page=<%= currentPage - 1 %>&limit=10">Previous</a>
+                        <% } %>
+                        <% for (let i = 1; i <= totalPages; i++) { %>
+                            <a href="?page=<%= i %>&limit=10" class="<%= currentPage === i ? 'active' : '' %>"><%= i %></a>
+                        <% } %>
+                        <% if (currentPage < totalPages) { %>
+                            <a href="?page=<%= currentPage + 1 %>&limit=10">Next</a>
+                        <% } %>
+                    </div>
                 </div>
             </div>
         </div>

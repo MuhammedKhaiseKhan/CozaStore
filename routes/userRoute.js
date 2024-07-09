@@ -30,14 +30,18 @@ user_route.get('/contact.html',userController.contactPage);
 user_route.get('/blog.html',userController.blogPage);
 user_route.get('/about.html',userController.aboutPage);
 user_route.get('/blog-detail.html',userController.blogDetailPage);
-user_route.get('/index.html',userAuth,userController.homePage);
-user_route.get('/product.html',userAuth,userController.productPage);
+// user_route.get('/index.html',userAuth,userController.homePage);
+user_route.get('/index.html',userController.homePage);
+user_route.get('/',userController.homePage);
+// user_route.get('/product.html',userAuth,userController.productPage);
+user_route.get('/product.html',userController.productPage);
 
-user_route.get('/product-detail.html/:id',userAuth, userController.productDetail);
+// user_route.get('/product-detail.html/:id',userAuth, userController.productDetail);
+user_route.get('/product-detail.html/:id', userController.productDetail);
 user_route.get('/shoping-cart.html',userAuth,userController.cartPage);
 user_route.get('/registration', userController.registrationPage);
 user_route.get('/login',userController.loginPage);
-user_route.get('/',userController.loginPage);
+// user_route.get('/',userController.loginPage);
 user_route.get('/otp',userController.otpPage);
 user_route.get('/resentOTP',userController.resentOTP);
 user_route.get('/logout',userAuth,userController.userLogout);
@@ -45,7 +49,8 @@ user_route.get('/userProfile',userAuth,userController.userProfile);
 user_route.get('/manageAddress',userAuth,userController.manageAddress);
 user_route.get('/removeFromCart',userAuth,userController.removeFromCart);
 user_route.get('/checkoutPage',userAuth,userController.loadCheckout);
-user_route.get('/search',userAuth,userController.searchProducts);
+// user_route.get('/search',userAuth,userController.searchProducts);
+user_route.get('/search',userController.searchProducts);
 
 
 
