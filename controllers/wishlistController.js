@@ -107,8 +107,10 @@ const removeFromWishlist = async (req, res, next) => {
 
 
 
+
+
 module.exports = {
     getWishlist,
     addToWishlist,
-    removeFromWishlist
+    removeFromWishlist,
 }

@@ -8,11 +8,11 @@ const userSchema = mongoose.Schema({
     },
     sname:{
         type:String,
-        required:true
+        required:false,
     },
     username:{
         type:String,
-        require:true
+        require:false
     },
     email:{
         type:String,
@@ -24,7 +24,13 @@ const userSchema = mongoose.Schema({
     },
     number:{
         type:Number,
-        require:true
+        require:false,
+        sparse:true,
+        default:null,
+    },
+    googleId:{
+        type:String,
+        unique:true
     },
     createdAt:{
         type:Date,
@@ -32,7 +38,7 @@ const userSchema = mongoose.Schema({
     },
     password:{
         type:String,
-        require:true
+        require:false
     }
 });
 

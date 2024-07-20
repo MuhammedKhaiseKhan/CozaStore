@@ -534,6 +534,126 @@ const orderDetails = async (req, res, next) => {
     }
 };
 
+// const invoiceDownload = async (req, res, next) => {
+//     try {
+//         const orderId = req.params.orderId;
+//         const order = await Order.findById(orderId).populate('orderItems.productId').exec();
+
+//         if (!order) {
+//             return res.status(404).json({ success: false, message: 'Order not found' });
+//         }
+
+//         const doc = new PDFDocument({ margin: 50 });
+//         const filename = `Invoice-${orderId}.pdf`;
+
+//         res.setHeader('Content-disposition', `attachment; filename="${filename}"`);
+//         res.setHeader('Content-type', 'application/pdf');
+
+//         doc.pipe(res);
+
+//         // Helper function for drawing lines
+//         const drawLine = (x1, y1, x2, y2) => {
+//             doc.moveTo(x1, y1).lineTo(x2, y2).stroke();
+//         };
+
+//         // Header
+//         doc.fontSize(24).font('Helvetica-Bold').text('INVOICE', { align: 'center' });
+//         doc.moveDown(0.5);
+        
+//         // Company Info (You can replace this with your company details)
+//         doc.fontSize(10).font('Helvetica').text('Coza Store', { align: 'right' });
+//         doc.text('Coza Store , Calicut, India', { align: 'right' });
+//         doc.text('Phone: +91 9961009900', { align: 'right' });
+//         doc.text('Email: cozastore@gmail.com', { align: 'right' });
+        
+//         doc.moveDown(1);
+//         drawLine(50, doc.y, 550, doc.y);
+//         doc.moveDown(1);
+
+//         // Order Info
+        
+//         doc.fontSize(10).font('Helvetica').text(`Order Date: ${new Date(order.orderDate).toLocaleString()}`, { align: 'left' });
+//         doc.text(`Order Status: ${order.orderStatus}`, { align: 'left' });
+//         doc.moveDown(1);
+
+//         // Billing Address
+//         doc.fontSize(12).font('Helvetica-Bold').text('Billing Address', { align: 'left' });
+//         doc.fontSize(10).font('Helvetica').text(`${order.address.Name}`, { align: 'left' });
+//         doc.text(`${order.address.address}`, { align: 'left' });
+//         doc.text(`${order.address.city}, ${order.address.state} ${order.address.PIN}`, { align: 'left' });
+//         doc.text(`Email: ${order.address.email}`, { align: 'left' });
+//         doc.text(`Phone: ${order.address.Mobile}`, { align: 'left' });
+//         doc.moveDown(1);
+
+//         // Order Items Table
+//         const tableTop = doc.y;
+//         const itemCodeX = 50;
+//         const descriptionX = 100;
+//         const quantityX = 300;
+//         const priceX = 380;
+//         const amountX = 480;
+
+//         doc.fontSize(10).font('Helvetica-Bold');
+//         doc.text('Item', itemCodeX, tableTop);
+//         doc.text('Description', descriptionX, tableTop);
+//         doc.text('Qty', quantityX, tableTop);
+//         doc.text('Price', priceX, tableTop);
+//         doc.text('Amount', amountX, tableTop);
+
+//         drawLine(50, doc.y + 5, 550, doc.y + 5);
+//         doc.moveDown(0.5);
+
+//         // Table rows
+//         doc.font('Helvetica');
+//         let subtotal = 0;
+//         order.orderItems.forEach((item, index) => {
+//             const y = doc.y;
+//             doc.text(index + 1, itemCodeX, y);
+//             doc.text(item.productName, descriptionX, y);
+//             doc.text(item.quantity, quantityX, y);
+//             doc.text(`₹${item.price.toFixed(2)}`, priceX, y);
+//             const amount = item.quantity * item.price;
+//             subtotal += amount;
+//             doc.text(`₹${amount.toFixed(2)}`, amountX, y);
+//             doc.moveDown(0.5);
+//         });
+
+//         drawLine(50, doc.y, 550, doc.y);
+//         doc.moveDown(0.5);
+
+//         // Subtotal, Discount, and Total
+//         doc.font('Helvetica-Bold');
+//         const subtotalY = doc.y;
+//         doc.text('Subtotal:', 350, subtotalY);
+//         doc.text(`₹${subtotal.toFixed(2)}`, amountX, subtotalY);
+//         doc.moveDown(0.5);
+
+//         const discountAmount = subtotal - order.totalAmount;
+//         const discountY = doc.y;
+//         doc.text('Discount:', 350, discountY);
+//         doc.text(`₹${discountAmount.toFixed(2)}`, amountX, discountY);
+//         doc.moveDown(0.5);
+
+//         drawLine(350, doc.y, 550, doc.y);
+//         doc.moveDown(0.5);
+
+//         const totalY = doc.y;
+//         doc.fontSize(12);
+//         doc.text('Total Amount:', 350, totalY);
+//         doc.text(`₹${order.totalAmount.toFixed(2)}`, amountX, totalY);
+
+//         // Footer
+//         doc.fontSize(10).font('Helvetica');
+//         doc.text('Thank you for your business!', 50, 700, { align: 'center' });
+
+//         doc.end();
+//     } catch (error) {
+//         console.log(error.message);
+//         res.status(500).send('Error fetching order details');
+//         next(error);
+//     }
+// };
+
 const invoiceDownload = async (req, res, next) => {
     try {
         const orderId = req.params.orderId;
@@ -560,7 +680,7 @@ const invoiceDownload = async (req, res, next) => {
         doc.fontSize(24).font('Helvetica-Bold').text('INVOICE', { align: 'center' });
         doc.moveDown(0.5);
         
-        // Company Info (You can replace this with your company details)
+        // Company Info
         doc.fontSize(10).font('Helvetica').text('Coza Store', { align: 'right' });
         doc.text('Coza Store , Calicut, India', { align: 'right' });
         doc.text('Phone: +91 9961009900', { align: 'right' });
@@ -571,7 +691,6 @@ const invoiceDownload = async (req, res, next) => {
         doc.moveDown(1);
 
         // Order Info
-        
         doc.fontSize(10).font('Helvetica').text(`Order Date: ${new Date(order.orderDate).toLocaleString()}`, { align: 'left' });
         doc.text(`Order Status: ${order.orderStatus}`, { align: 'left' });
         doc.moveDown(1);
@@ -621,17 +740,26 @@ const invoiceDownload = async (req, res, next) => {
         drawLine(50, doc.y, 550, doc.y);
         doc.moveDown(0.5);
 
-        // Subtotal, Discount, and Total
+        // Subtotal, Delivery Charge, Discount, and Total
         doc.font('Helvetica-Bold');
         const subtotalY = doc.y;
         doc.text('Subtotal:', 350, subtotalY);
         doc.text(`₹${subtotal.toFixed(2)}`, amountX, subtotalY);
         doc.moveDown(0.5);
 
-        const discountAmount = subtotal - order.totalAmount;
+        // Add fixed Delivery Charge
+        const deliveryCharge = 60; // Fixed delivery charge
+        const deliveryChargeY = doc.y;
+        doc.text('Delivery Charge:', 350, deliveryChargeY);
+        doc.text(`₹${deliveryCharge.toFixed(2)}`, amountX, deliveryChargeY);
+        doc.moveDown(0.5);
+
+        // Calculate and display the actual discount
+        const totalBeforeDiscount = subtotal + deliveryCharge;
+        const actualDiscount = totalBeforeDiscount - order.totalAmount;
         const discountY = doc.y;
         doc.text('Discount:', 350, discountY);
-        doc.text(`₹${discountAmount.toFixed(2)}`, amountX, discountY);
+        doc.text(`₹${actualDiscount.toFixed(2)}`, amountX, discountY);
         doc.moveDown(0.5);
 
         drawLine(350, doc.y, 550, doc.y);
@@ -653,7 +781,6 @@ const invoiceDownload = async (req, res, next) => {
         next(error);
     }
 };
-
 
 const orders = async (req, res, next) => {
     try {
@@ -883,6 +1010,45 @@ const updateOrderStatus =  async (req, res, next) => {
     }
 };
 
+// const approveReturn = async (req, res, next) => {
+//     try {
+//         const orderId = req.body.orderId; // Changed to req.body.orderId to match fetch request payload
+
+//         if (!mongoose.Types.ObjectId.isValid(orderId)) {
+//             return res.status(400).send({ message: "Invalid order ID." });
+//         }
+
+//         const order = await Order.findByIdAndUpdate(orderId, { $set: { orderStatus: 'returned' } }, { new: true });
+
+//         if (!order) {
+//             return res.status(404).send({ message: "Order not found." });
+//         }
+
+//         // Add to wallet
+//         const orderData = await Order.findById(orderId);
+//         await Wallet.findOneAndUpdate(
+//             { userId: orderData.userId },
+//             {
+//                 $inc: { walletAmount: orderData.totalAmount },
+//                 $push: {
+//                     transactionHistory: {
+//                         amount: orderData.totalAmount,
+//                         PaymentType: "credit",
+//                         date: new Date()
+//                     }
+//                 }
+//             },
+//             { new: true, upsert: true }
+//         );
+
+//         res.status(200).send({ message: "Return approved successfully.", order: order });
+//     } catch (error) {
+//         console.error('Error approving return:', error.message);
+//         res.status(500).send({ message: 'An error occurred while approving return.' });
+//         next(error);
+//     }
+// };
+
 const approveReturn = async (req, res, next) => {
     try {
         const orderId = req.body.orderId; // Changed to req.body.orderId to match fetch request payload
@@ -897,15 +1063,25 @@ const approveReturn = async (req, res, next) => {
             return res.status(404).send({ message: "Order not found." });
         }
 
+        // Define fixed delivery charge
+        const deliveryCharge = 60;
+
+        // Calculate refund amount by subtracting delivery charge
+        const refundAmount = order.totalAmount - deliveryCharge;
+
+        if (refundAmount < 0) {
+            return res.status(400).send({ message: "Refund amount cannot be less than zero." });
+        }
+
         // Add to wallet
         const orderData = await Order.findById(orderId);
         await Wallet.findOneAndUpdate(
             { userId: orderData.userId },
             {
-                $inc: { walletAmount: orderData.totalAmount },
+                $inc: { walletAmount: refundAmount },
                 $push: {
                     transactionHistory: {
-                        amount: orderData.totalAmount,
+                        amount: refundAmount,
                         PaymentType: "credit",
                         date: new Date()
                     }
@@ -921,6 +1097,7 @@ const approveReturn = async (req, res, next) => {
         next(error);
     }
 };
+
 
 const loadWallet = async (req, res, next) => {
     try {

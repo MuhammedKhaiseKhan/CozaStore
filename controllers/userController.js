@@ -821,6 +821,27 @@ const addToCart = async (req, res, next) => {
 };
 
 
+const checkIfInCart = async (req, res) => {
+    try {
+        const userId = req.session.user_id;
+        const productId = req.query.productId;
+
+        // Find the user's cart
+        const userCart = await Cart.findOne({ userId });
+        if (userCart) {
+            // Check if the product already exists in the cart
+            const existingItem = userCart.cartItems.find(item => item.productId.equals(productId));
+            if (existingItem) {
+                return res.status(200).json({ inCart: true });
+            }
+        }
+        return res.status(200).json({ inCart: false });
+    } catch (error) {
+        console.error('Error checking if item is in cart:', error.message);
+        return res.status(500).json({ error: 'Internal server error' });
+    }
+};
+
 // const addToCart = async (req, res) => {
 //     try {
        
@@ -1309,5 +1330,6 @@ module.exports = {
     updateQuantity,
     removeFromCart,
     loadCheckout,
-    searchProducts
+    searchProducts,
+    checkIfInCart
 }

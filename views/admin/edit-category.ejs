@@ -1,6 +1,85 @@
 
 <%- include('../layouts/adminLayout/header.ejs')%>
 
+<link href="https://unpkg.com/cropperjs/dist/cropper.css" rel="stylesheet"/>
+<script src="https://unpkg.com/cropperjs"></script>
+
+<style>
+    .modal-content {
+        margin: 10% auto;
+        padding: 20px;
+        width: 80%;
+        max-width: 600px;
+        background-color: #363636;
+    }
+.cropper-container {
+        width: 100%;
+        max-height: 400px;
+        margin-bottom:10px;
+    }
+
+</style>
+
+<script>
+    let cropper;
+    let currentInput;
+    let croppedFiles = new Map(); // To store the cropped files
+
+    function previewImage(event) {
+        const input = event.target;
+        const file = input.files[0];
+        currentInput = input; // Save the reference to the current input
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const cropperImage = document.getElementById('cropperImage');
+                cropperImage.src = e.target.result;
+                document.getElementById('cropperModal').style.display = 'block';
+                if (cropper) {
+                    cropper.destroy();
+                }
+                cropper = new Cropper(cropperImage, {
+                    aspectRatio: 1200 / 809, // Portrait aspect ratio
+                    viewMode: 1,
+                });
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    function cropImage() {
+        if (cropper) {
+            cropper.getCroppedCanvas({
+                width: 300, // desired width
+                height: 400, // desired height
+            }).toBlob(function(blob) {
+                const croppedImageSrc = URL.createObjectURL(blob);
+                const imagePreview = currentInput.previousElementSibling;
+                if (imagePreview && imagePreview.tagName === 'IMG') {
+                    imagePreview.src = croppedImageSrc;
+                }
+                // Replace the file input with the cropped image blob
+                const dataTransfer = new DataTransfer();
+                const file = new File([blob], `croppedImage${Date.now()}.jpg`, { type: "image/jpeg" });
+                dataTransfer.items.add(file);
+                currentInput.files = dataTransfer.files;
+                // Store the cropped file in the Map
+                croppedFiles.set(currentInput.name, file);
+                closeModal();
+            }, 'image/jpeg', 1);
+        }
+    }
+
+    function closeModal() {
+        document.getElementById('cropperModal').style.display = 'none';
+        if (cropper) {
+            cropper.destroy();
+            cropper = null;
+        }
+    }
+</script>
+
+
 
     <div class="container-xxl position-relative bg-white d-flex p-0">
         <!-- Spinner Start -->
@@ -95,7 +174,9 @@
                         </div>
                         <div class="mb-3">
                             <label for="image" class="form-label">Image</label>
-                            <input class="form-control" type="file" id="image" name="image" >
+                            <img  class="image-preview" src="<%= category.image %>" style="max-width: 30%; margin-top: 10px;" alt="product image" />
+                            <!-- <input class="form-control" type="file" id="image" name="image" > -->
+                            <input class="form-control" type="file" id="image" name="image" onchange="previewImage(event)" >
                         </div>
                         <button type="submit" class="btn btn-primary">Update</button>
                     </form>
@@ -149,3 +230,14 @@
 
 
  <%- include('../layouts/adminLayout/footer.ejs')%>
+
+  <!-- Modal for cropping -->
+<div id="cropperModal" class="modal">
+    <div class="modal-content">
+        <div class="cropper-container">
+            <img id="cropperImage" src="" alt="Image for cropping" />
+        </div>
+        <button onclick="cropImage()">Crop</button>
+        <button onclick="closeModal()">Cancel</button>
+    </div>
+</div>

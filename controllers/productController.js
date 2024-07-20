@@ -153,50 +153,67 @@ const newProduct = async (req, res, next) => {
 //edit and save product
 const updateProduct = async (req, res, next) => {
     try {
-        // Check if there's a file uploaded for image
-        let image;
-        if (req.file) {
-            const imagePath = `/product/${req.file.filename}`;
-            image = imagePath;
-        }
-        
         const productId = req.params.id;
         const { productName, brandName, size, color, category, inStock, originalPrice, discountPrice, discount, description } = req.body;
 
+        // Fetch the existing product data
         const productData = await Product.findById(productId);
 
         // Check if the updated product name already exists, excluding the current product
         const alreadyExist = await Product.findOne({ 
-            _id: { $ne: productId }, // Exclude the current product from the search
-            productName: { $regex: new RegExp(`^${productName}$`, 'i') } // Case-insensitive match
+            _id: { $ne: productId },
+            productName: { $regex: new RegExp(`^${productName}$`, 'i') }
         });
 
         if (alreadyExist) {
-            return res.render('edit-product', { product: productData, message: "This product is already added" });
+            return res.render('edit-product', { product: productData, message: "This product name is already in use." });
         }
+
         // Prepare update object based on fields provided
         const updateObject = {};
         if (productName) updateObject.productName = productName;
         if (brandName) updateObject.brand = brandName;
         if (size) updateObject.size = size;
         if (color) updateObject.color = color;
-        // if (category) updateObject.category = category;
+        if (category) updateObject.category = category;
         if (description) updateObject.description = description;
         if (originalPrice) updateObject.price = originalPrice;
         if (discountPrice) updateObject.discountPrice = discountPrice;
         if (discount) updateObject.discount = discount;
-        if (image) updateObject.image = image;
         if (inStock) updateObject.inStock = inStock;
 
+        // Handle image updates if new files are provided
+        if (req.files && req.files.length > 0) {
+            // Get the current images
+            const currentImages = productData.image || [];
+            
+            // Update images based on their index
+            req.files.forEach((file, index) => {
+                const newImagePath = `/product/${file.filename}`;
+                if (index < currentImages.length) {
+                    // Replace existing image
+                    currentImages[index] = newImagePath;
+                } else {
+                    // Add new image
+                    currentImages.push(newImagePath);
+                }
+            });
+
+            // Update the image array in the updateObject
+            updateObject.image = currentImages;
+        }
+
+        // Update the product in the database
         const updatedProduct = await Product.findByIdAndUpdate(productId, updateObject, { new: true });
 
+        // Redirect or send response as per your application's logic
         res.redirect('/admin/product'); 
     } catch (error) {
-        console.log(error.message);
+        console.error('Error while updating product:', error);
         next(error);
-        
     }
 }
+
 
 // Product Soft delete 
 const productDelete = async (req, res, next) => {

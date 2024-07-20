@@ -92,17 +92,66 @@ async function removeFromWishlist(productId) {
     }
 }
 
+// async function addToCart(productId) {
+//     try {
+//         const response = await fetch(`/add-to-cart`, {
+//             method: 'POST',
+//             headers: {
+//                 'Content-Type': 'application/json'
+//             },
+//             body: JSON.stringify({ productId: productId })
+//         });
+//         const result = await response.json();
+//         if (response.ok) {
+//             Swal.fire({
+//                 icon: 'success',
+//                 title: 'Product added to cart successfully',
+//                 showConfirmButton: false,
+//                 timer: 1500
+//             });
+//         } else {
+//             throw new Error(result.message);
+//         }
+//     } catch (error) {
+//         console.error('Error adding product to cart:', error);
+//         Swal.fire({
+//             icon: 'error',
+//             title: 'Failed to add product to cart',
+//             showConfirmButton: false,
+//             timer: 1500
+//         });
+//     }
+// }
+
 async function addToCart(productId) {
     try {
-        const response = await fetch(`/add-to-cart`, {
+        // Check if the product is already in the cart
+        const checkResponse = await fetch(`/check-cart?productId=${productId}`, {
+            method: 'GET'
+        });
+        const checkResult = await checkResponse.json();
+
+        if (checkResult.inCart) {
+            Swal.fire({
+                icon: 'info',
+                title: 'This item is already added to your cart',
+                showConfirmButton: false,
+                timer: 1500
+            });
+            return;
+        }
+
+        // Add the product to the cart
+        const addResponse = await fetch(`/add-to-cart`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({ productId: productId })
         });
-        const result = await response.json();
-        if (response.ok) {
+        const addResult = await addResponse.json();
+
+        if (addResponse.ok) {
             Swal.fire({
                 icon: 'success',
                 title: 'Product added to cart successfully',
@@ -110,7 +159,7 @@ async function addToCart(productId) {
                 timer: 1500
             });
         } else {
-            throw new Error(result.message);
+            throw new Error(addResult.message);
         }
     } catch (error) {
         console.error('Error adding product to cart:', error);

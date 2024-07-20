@@ -1,5 +1,83 @@
 <%- include('../layouts/adminLayout/header.ejs')%>
 
+<link href="https://unpkg.com/cropperjs/dist/cropper.css" rel="stylesheet"/>
+<script src="https://unpkg.com/cropperjs"></script>
+
+<style>
+    .modal-content {
+        margin: 10% auto;
+        padding: 20px;
+        width: 80%;
+        max-width: 600px;
+        background-color: #363636;
+    }
+.cropper-container {
+        width: 100%;
+        max-height: 400px;
+        margin-bottom:10px;
+    }
+
+</style>
+
+<script>
+    let cropper;
+    let currentInput;
+    let croppedFiles = new Map(); // To store the cropped files
+
+    function previewImage(event) {
+        const input = event.target;
+        const file = input.files[0];
+        currentInput = input; // Save the reference to the current input
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const cropperImage = document.getElementById('cropperImage');
+                cropperImage.src = e.target.result;
+                document.getElementById('cropperModal').style.display = 'block';
+                if (cropper) {
+                    cropper.destroy();
+                }
+                cropper = new Cropper(cropperImage, {
+                    aspectRatio: 1200 / 1485, // Portrait aspect ratio
+                    viewMode: 1,
+                });
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    function cropImage() {
+        if (cropper) {
+            cropper.getCroppedCanvas({
+                width: 300, // desired width
+                height: 400, // desired height
+            }).toBlob(function(blob) {
+                const croppedImageSrc = URL.createObjectURL(blob);
+                const imagePreview = currentInput.previousElementSibling;
+                if (imagePreview && imagePreview.tagName === 'IMG') {
+                    imagePreview.src = croppedImageSrc;
+                }
+                // Replace the file input with the cropped image blob
+                const dataTransfer = new DataTransfer();
+                const file = new File([blob], `croppedImage${Date.now()}.jpg`, { type: "image/jpeg" });
+                dataTransfer.items.add(file);
+                currentInput.files = dataTransfer.files;
+                // Store the cropped file in the Map
+                croppedFiles.set(currentInput.name, file);
+                closeModal();
+            }, 'image/jpeg', 1);
+        }
+    }
+
+    function closeModal() {
+        document.getElementById('cropperModal').style.display = 'none';
+        if (cropper) {
+            cropper.destroy();
+            cropper = null;
+        }
+    }
+</script>
+
 <div class="container-xxl position-relative bg-white d-flex p-0">
     <!-- Spinner Start -->
     <div id="spinner" class="show bg-white position-fixed translate-middle w-100 vh-100 top-50 start-50 d-flex align-items-center justify-content-center">
@@ -161,18 +239,18 @@
                     <div class="row mb-3">
                         <div class="col-md-4">
                             <label for="image1" class="form-label">Image 1</label>
-                            <input class="form-control" type="file" id="image1" name="image1" onchange="previewImage(this, 'preview1')">
-                            <img id="preview1" src="<%= product.image[0] %>" alt="Image 1 Preview" style="max-width: 100%; margin-top: 10px;">
+                            <img  class="image-preview" src="<%= product.image[0] %>" style="max-width: 100%; margin-top: 10px;" alt="product image" />
+                            <input class="form-control" type="file" id="image1" name="image1" onchange="previewImage(event)" >
                         </div>
                         <div class="col-md-4">
                             <label for="image2" class="form-label">Image 2</label>
-                            <input class="form-control" type="file" id="image2" name="image2" onchange="previewImage(this, 'preview2')">
-                            <img id="preview2" src="<%= product.image[1] %>" alt="Image 2 Preview" style="max-width: 100%; margin-top: 10px;">
+                            <img  class="image-preview" src="<%= product.image[1] %>" style="max-width: 100%; margin-top: 10px;" alt="product image" />
+                            <input class="form-control" type="file" id="image2" name="image2"  onchange="previewImage(event)">
                         </div>
                         <div class="col-md-4">
                             <label for="image3" class="form-label">Image 3</label>
-                            <input class="form-control" type="file" id="image3" name="image3" onchange="previewImage(this, 'preview3')">
-                            <img id="preview3" src="<%= product.image[2] %>" alt="Image 3 Preview" style="max-width: 100%; margin-top: 10px;">
+                            <img  class="image-preview" src="<%= product.image[2] %>" style="max-width: 100%; margin-top: 10px;" alt="product image" />
+                            <input class="form-control" type="file" id="image3" name="image3" onchange="previewImage(event)">
                         </div>
                     </div>
                 
@@ -221,34 +299,46 @@
 
 <script>
     function calculateDiscount() {
-        var OriginalPriceInput = document.getElementById('originalPrice').value;
-        var discountPriceInput = document.getElementById('discountPrice').value;
-        
-        var discountPrice = parseFloat(discountPriceInput);
-        var OriginalPrice = parseFloat(OriginalPriceInput);
-        
-        if (!isNaN(discountPrice) && !isNaN(OriginalPrice)) {
-            var discountPercentage = (discountPrice / OriginalPrice) * 100;
-            console.log(discountPercentage);
-            document.getElementById('discount').value = parseInt(discountPercentage);
-        }
+    var originalPriceInput = parseFloat(document.getElementById('originalPrice').value);
+    var discountPriceInput = parseFloat(document.getElementById('discountPrice').value);
+    
+    if (!isNaN(originalPriceInput) && !isNaN(discountPriceInput) && originalPriceInput !== 0) {
+        var discountPercentage = ((originalPriceInput - discountPriceInput) / originalPriceInput) * 100;
+        document.getElementById('discount').value = discountPercentage.toFixed(2); // Round to 2 decimal places
+    } else {
+        // Handle cases where inputs are invalid or original price is zero
+        document.getElementById('discount').value = ''; // Clear the discount field or show an error
     }
+}
+    // function calculateDiscount() {
+    //     var OriginalPriceInput = document.getElementById('originalPrice').value;
+    //     var discountPriceInput = document.getElementById('discountPrice').value;
+        
+    //     var discountPrice = parseFloat(discountPriceInput);
+    //     var OriginalPrice = parseFloat(OriginalPriceInput);
+        
+    //     if (!isNaN(discountPrice) && !isNaN(OriginalPrice)) {
+    //         var discountPercentage = (discountPrice / OriginalPrice) * 100;
+    //         console.log(discountPercentage);
+    //         document.getElementById('discount').value = parseInt(discountPercentage);
+    //     }
+    // }
 
-    function previewImage(input, previewId) {
-        const file = input.files[0];
-        const preview = document.getElementById(previewId);
+    // function previewImage(input, previewId) {
+    //     const file = input.files[0];
+    //     const preview = document.getElementById(previewId);
         
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            preview.src = e.target.result;
-        };
+    //     const reader = new FileReader();
+    //     reader.onload = function(e) {
+    //         preview.src = e.target.result;
+    //     };
         
-        if (file) {
-            reader.readAsDataURL(file);
-        } else {
-            preview.src = '';
-        }
-    }
+    //     if (file) {
+    //         reader.readAsDataURL(file);
+    //     } else {
+    //         preview.src = '';
+    //     }
+    // }
 
     document.getElementById('product-form').addEventListener('submit', async (event) => {
         event.preventDefault();
@@ -277,3 +367,14 @@
 </script>
 
 <%- include('../layouts/adminLayout/footer.ejs')%>
+
+<!-- Modal for cropping -->
+<div id="cropperModal" class="modal">
+    <div class="modal-content">
+        <div class="cropper-container">
+            <img id="cropperImage" src="" alt="Image for cropping" />
+        </div>
+        <button onclick="cropImage()">Crop</button>
+        <button onclick="closeModal()">Cancel</button>
+    </div>
+</div>

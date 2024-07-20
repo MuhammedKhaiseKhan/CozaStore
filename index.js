@@ -5,6 +5,7 @@ const userRoute = require('./routes/userRoute');
 const adminRoute = require('./routes/adminRoute');
 const mongoose = require('mongoose');
 const errorMiddleware = require('./middleware/errorHandlingMiddleware');
+const passport = require('./util/passport');
 
 
 
@@ -27,10 +28,14 @@ app.use('/',userRoute);
 
 app.use('/admin',adminRoute);
 
+//google
+app.use(passport.initialize());
+app.use(passport.session());
+
+
 
 
 // Use centralized error handling middleware
-
 app.use(errorMiddleware);
 
 // 404

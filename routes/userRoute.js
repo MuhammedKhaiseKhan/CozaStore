@@ -6,6 +6,7 @@ const nocache = require("nocache");
 const orderController = require("../controllers/orderController");
 const wishlistController = require("../controllers/wishlistController");
 const couponController = require("../controllers/couponController");
+const passport = require('../util/passport');
 
 
 const user_route = express();
@@ -63,6 +64,7 @@ user_route.post('/newAddress',userAuth,userController.newAddress);
 user_route.post('/updateAddress/:index',userAuth, userController.updateAddress);
 user_route.post('/add-to-cart',userAuth,userController.addToCart);
 user_route.post('/updateQuantity',userAuth,userController.updateQuantity);
+user_route.get('/check-cart', userAuth, userController.checkIfInCart);
 
 
 
@@ -84,6 +86,7 @@ user_route.post('/getPaymentDetails',userAuth,orderController.getPaymentDetails)
 //wishlist controller
 user_route.get('/wishlist',userAuth, wishlistController.getWishlist);
 
+
 user_route.post('/addToWishlist', userAuth,wishlistController.addToWishlist);
 user_route.post('/removeFromWishlist',userAuth, wishlistController.removeFromWishlist);
 
@@ -93,6 +96,20 @@ user_route.post('/removeFromWishlist',userAuth, wishlistController.removeFromWis
 user_route.post('/apply-coupon',userAuth,couponController.applyCoupon);
 user_route.post('/remove-coupon', userAuth, couponController.removeCoupon);
 
-
+// Google OAuth routes
+user_route.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+user_route.get('/auth/google/callback',
+    passport.authenticate('google', { failureRedirect: '/registration' }),
+    (req, res) => {
+        if (!req.user.is_verified) {
+            req.logout();
+            return res.redirect('/registration?blocked=true');
+        }
+        // User is authenticated and verified
+        req.session.user_id = req.user._id;
+        req.session.isUserAuthenticated = true;
+        res.redirect('/index.html');
+    }
+);
 
 module.exports = user_route;
