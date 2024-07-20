@@ -1062,7 +1062,6 @@ const approveReturn = async (req, res, next) => {
         if (!order) {
             return res.status(404).send({ message: "Order not found." });
         }
-
         // Define fixed delivery charge
         const deliveryCharge = 60;
 
@@ -1142,6 +1141,8 @@ const loadWallet = async (req, res, next) => {
         next(error);
     }
 };
+
+// new
 
 // const loadWallet = async (req, res, next) => {
 //     try {
